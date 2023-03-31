@@ -61,7 +61,7 @@ class Logger:
     def close(self):
         self.file.close()
 
-log = Logger('geno.log')
+log = Logger('neuma.log')
 #}}}
 
 #{{{ ChatModel
@@ -72,9 +72,11 @@ class ChatModel:
         self.mode = "" # Default mode
         self.persona = "" # Default persona
         self.voice_output = False # Default voice output
+        self.voice = self.config["voices"]["english"] # Default voice
 
     #{{{ Generate final prompt
     def generate_final_prompt(self, new_prompt: str) -> str:
+        """ Generate final prompt for OpenAI API """
 
         # Persona prompt
         if self.persona != "":
@@ -88,7 +90,7 @@ class ChatModel:
         # Discussion up to this point
         discussion = self.get_discussion()
 
-        # New prompt
+        # Add a dot at the end of the prompt if there isn't one
         if new_prompt[-1] not in ["?", "!", "."]:
             new_prompt += "."
         self.new_prompt = new_prompt
@@ -99,11 +101,25 @@ class ChatModel:
         else:
             mode_prompt = ""
 
-        if self.mode == "translation":
-            mode_prompt = mode_prompt.replace("LANGUAGE", self.find_hashtag(new_prompt))
+        # Pass the language code to the prompt
+        if self.mode == "trans":
+            hashtag = self.find_hashtag(new_prompt)
+            if hashtag:
+                mode_prompt = mode_prompt.replace("LANGUAGE", self.find_hashtag(new_prompt))
+            else:
+                raise ValueError("No language code found in the prompt.")
+
+        # Lang prompt
+        if self.get_voice() != "" and self.mode != "trans":
+            voice = self.get_voice()
+            log.log("Voice : {}".format(voice))
+            language_code = voice[:5]
+            lang_prompt = "Write only in the language corresponding to this language code : " + language_code
+        else:
+            lang_prompt = ""
 
         # Final prompt
-        final_prompt = f"{persona_prompt} {discussion} {new_prompt} {mode_prompt}"
+        final_prompt = f"{persona_prompt} {discussion} {new_prompt} {mode_prompt} {lang_prompt}"
         log.log("Final prompt: {}".format(final_prompt))
 
         return final_prompt
@@ -112,6 +128,7 @@ class ChatModel:
 
     #{{{ Generate response
     def generate_response(self, final_prompt: str) -> str:
+        """ Generate response from OpenAI API """
 
         try:
             chat_completions = openai.ChatCompletion.create(
@@ -146,6 +163,7 @@ class ChatModel:
 
     #{{{ Get config
     def get_config(self) -> dict:
+        """ Get config from config.toml """
 
         if os.path.isfile(os.path.expanduser("~/.config/neuma/config.toml")):
             config_path = os.path.expanduser("~/.config/neuma/config.toml")
@@ -162,17 +180,22 @@ class ChatModel:
 
     #{{{ Set config
     def set_config(self, config: dict) -> None:
+        """ Set config """
         self.config = config
     #}}}
 
     #{{{ Process response
     def process_response(self, response: str) -> str:
-        log.log("Processing response:")
+        """ Process response, formats the response """
+
+        #{{{ General formating
 
         # Remove double line breaks
         response = response.replace("\n\n", "\n")
 
-        # Table mode
+        #}}}
+
+        #{{{ Table mode formatting
         if self.mode == "table":
             log.log("Table mode")
             lines = response.split("\n")
@@ -197,11 +220,14 @@ class ChatModel:
             # Return table
             return table
 
-        # Code mode
+        #}}}
+
+        #{{{ Code mode formatting
         elif self.mode == "code":
             language = self.find_hashtag(self.new_prompt)
             syntax = Syntax(response, language, line_numbers=True, theme="gruvbox-dark", word_wrap=True)
             return syntax
+        #}}}
 
         return response
 
@@ -211,8 +237,9 @@ class ChatModel:
 
     # List personae
     def list_personae(self) -> str | list:
-        if os.path.isfile(os.path.expanduser("~/.config/geno/personae.toml")):
-            personae_path = os.path.expanduser("~/.config/geno/personae.toml")
+        """ List the available personae from the personae file """
+        if os.path.isfile(os.path.expanduser("~/.config/neuma/personae.toml")):
+            personae_path = os.path.expanduser("~/.config/neuma/personae.toml")
         else:
             personae_path = os.path.dirname(os.path.realpath(__file__)) + "/personae.toml"
         try:
@@ -353,17 +380,21 @@ class ChatModel:
     #{{{ Voice input
     def listen(self) -> str:
 
+        # https://github.com/Uberi/speech_recognition
         recognizer = speech_recognition.Recognizer()
 
-        # Listen for audio input
         with speech_recognition.Microphone() as source:
+            recognizer.adjust_for_ambient_noise(source)
+            # audio = recognizer.listen(source, phrase_time_limit=5)
             audio = recognizer.listen(source)
+
             with open("tmp.wav", "wb") as f:
                 f.write(audio.get_wav_data())
             audio_file = open("tmp.wav", "rb")
 
-            # Transcribe audio to text
+            # Transcribe audio to text https://platform.openai.com/docs/guides/speech-to-text
             transcription = self.transcribe(audio_file)
+
             return transcription
 
     #}}}
@@ -387,6 +418,16 @@ class ChatModel:
     def set_voice_output(self, voice_output: str) -> None:
         self.voice_output = voice_output
 
+    def get_voices(self) -> list:
+        self.voices = self.config["voices"]
+        return self.voices
+
+    def get_voice(self) -> str:
+        return self.voice
+
+    def set_voice(self, voice: str) -> None:
+        self.voice = self.config["voices"][voice]
+
     def speak(self, response: str) -> None:
 
         if self.voice_output == True:
@@ -397,16 +438,17 @@ class ChatModel:
             # Set the text input to be synthesized
             synthesis_input = texttospeech.SynthesisInput(text=response)
 
-            language_code = self.get_persona_language_code()
+            # if a persona is set
+            if self.persona != "":
+                voice_name = self.get_persona_voice_name()
+            else:
+                voice_name = self.get_voice()
 
-            voice_name = self.get_persona_voice_name()
+            language_code = voice_name[:5]
 
             # Build the voice request
             voice = texttospeech.VoiceSelectionParams(
                 # https://cloud.google.com/text-to-speech/docs/voices
-                # language_code="en-US", name="en-US-Studio-O"
-                # language_code="en-US", name="en-US-Neural2-D"
-                # language_code="en-GB", name="en-GB-Neural2-C"
                 language_code=language_code, name=voice_name
             )
 
@@ -494,11 +536,11 @@ class ChatView:
         help_table.add_column("Description")
         help_table.add_row("help","h", "Display this help page")
         help_table.add_row("restart","r", "Restart application")
-        help_table.add_row("new","n", "Start a new discussion")
-        help_table.add_row("save","s", "Save the current discussion")
-        help_table.add_row("list","l", "List saved discussions")
-        help_table.add_row("open","o", "Open a saved discussion")
-        help_table.add_row("delete","d", "Delete a saved discussion")
+        help_table.add_row("discussion create","dc", "Create a new discussion")
+        help_table.add_row("discussion save","ds", "Save the current discussion")
+        help_table.add_row("discussion list","dl", "List saved discussions")
+        help_table.add_row("discussion open","do", "Open a saved discussion")
+        help_table.add_row("discussion delete","dd", "Delete a saved discussion")
         help_table.add_row("modes","m", "List the available display modes")
         help_table.add_row("mode [mode]" ,"m [mode]", "Switch to mode [mode]")
         help_table.add_row("personae","p", "List the available personae")
@@ -557,7 +599,7 @@ class ChatController:
                 with self.chat_view.console.status(""):
 
                     self.voice_input = self.chat_model.listen()
-                    self.console.print("> "+self.voice_input, "question")
+                    self.console.print("> "+self.voice_input)
                     final_prompt = self.chat_model.generate_final_prompt(self.voice_input)
                     response = self.chat_model.generate_response(final_prompt)
 
@@ -573,27 +615,62 @@ class ChatController:
     def parse_command(self, command: str) -> None:
         """ Parse the user input and execute the command """
 
-        # Exit
+        #{{{ System
+
+        #{{{ Exit
         if command == "quit" or command == "q":
             self.exit_app()
+        #}}}
 
-        # Help
+        #{{{ Restart
+        elif command == "restart" or command == "r":
+            self.chat_view.display_message("Restarting Neuma...", "success")
+            time.sleep(1)
+            os.execv(sys.executable, ['python'] + sys.argv)
+        #}}}
+
+        #{{{ Help
         elif command == "help" or command == "h":
             self.chat_view.display_help()
+        #}}}
 
-        # Save discussion
-        elif command.startswith("save ") or command.startswith("s "):
-            filename = command.split(" ")[1]
-            save = self.chat_model.save_discussion(filename)
-            if isinstance(save, Exception):
-                self.chat_view.display_message("Error saving discussion: {}".format(save), "error")
+        #{{{ Clear screen
+        elif command == "clear" or command == "c":
+            self.chat_view.clear_screen()
+        #}}}
+
+        #{{{ Copy answer to clipboard
+        elif command == "yank" or command == "ya":
+            self.chat_model.copy_to_clipboard(self.chat_model.response)
+            self.chat_view.display_message("Copied to clipboard.", "success")
+        #}}}
+
+        #{{{ Set the temperature
+        elif command.startswith("temp ") or command.startswith("t "):
+            temp = command[2:]
+            set_temp = self.chat_model.set_temperature(temp)
+            if isinstance(set_temp, Exception):
+                self.chat_view.display_message("Error setting temperature: {}".format(set_temp), "error")
             else:
-                self.chat_view.display_message("Discussion saved.", "success")
-                sleep(1)
-                self.chat_view.clear_screen()
+                self.chat_view.display_message("Temperature set to {}.".format(temp), "success")
+        #}}}
 
-        # List discussions
-        elif command == "list" or command == "l":
+        #{{{ Export as SVG
+        elif command == "export" or command == "e":
+            self.chat_view.display_message("Exporting as SVG...", "info")
+            export = self.chat_model.export_as_svg(self.chat_view.console)
+            if isinstance(export, Exception):
+                self.chat_view.display_message("Error exporting as SVG: {}".format(export), "error")
+            else:
+                self.chat_view.display_message("Exported as thread.svg", "success")
+        #}}}
+
+        #}}}
+
+        #{{{ Discussions
+
+        #{{{ List discussions
+        elif command == "discussion list" or command == "dl" or command == "d":
             discussions_list = self.chat_model.list_discussions()
             if isinstance(discussions_list, Exception):
                 self.chat_view.display_message("Error listing discussion: {}".format(discussion_list), "error")
@@ -601,9 +678,28 @@ class ChatController:
                 self.chat_view.display_message("Discussions:", "success")
                 for discussion in discussions_list:
                     self.chat_view.display_message(discussion, "info")
+        #}}}
 
-        # Open discussion
-        elif command.startswith("open ") or command.startswith("o "):
+        #{{{ Create discussion
+        elif command == "discussion create" or command == "dc":
+            self.chat_model.new_discussion()
+            self.chat_model.set_persona("")
+            self.chat_view.mode = "normal"
+            self.chat_view.display_message("New discussion.", "success")
+        #}}}
+
+        #{{{ Save discussion
+        elif command.startswith("discussion save ") or command.startswith("ds "):
+            filename = command.split(" ")[1]
+            save = self.chat_model.save_discussion(filename)
+            if isinstance(save, Exception):
+                self.chat_view.display_message("Error saving discussion: {}".format(save), "error")
+            else:
+                self.chat_view.display_message("Discussion saved.", "success")
+        #}}}
+
+        #{{{ Open discussion
+        elif command.startswith("discussion open ") or command.startswith("do "):
             filename = command.split(" ")[1]
             if filename == "":
                 self.chat_view.display_message("Please specify a filename.", "error")
@@ -615,35 +711,30 @@ class ChatController:
                 sleep(1)
                 self.chat_view.clear_screen()
                 self.chat_view.display_message(self.chat_model.get_discussion(), "answer")
+        #}}}
 
-        # Delete discussion
-        elif command.startswith("delete ") or command.startswith("d "):
+        #{{{ Delete discussion
+        elif command.startswith("discussion delete ") or command.startswith("dd "):
             filename = command.split(" ")[1]
             delete_discussion = self.chat_model.delete_discussion(filename)
             if isinstance(delete_discussion, Exception):
                 self.chat_view.display_message("Error deleting discussion: {}".format(delete_discussion), "error")
             else:
                 self.chat_view.display_message("Discussion deleted.", "success")
-                time.sleep(1)
-                self.chat_view.clear_screen()
+        #}}}
 
-        # New discussion
-        elif command == "new" or command == "n":
-            self.chat_model.new_discussion()
-            self.chat_model.set_persona("")
-            self.chat_view.mode = "normal"
-            self.chat_view.display_message("New discussion.", "success")
-            time.sleep(1)
-            self.chat_view.clear_screen()
+        #{{{ Copy discussion to clipboard
+        elif command == "discussion yank" or command == "dy":
+            self.chat_model.copy_to_clipboard(self.chat_model.get_discussion())
+            self.chat_view.display_message("Copied discussion to clipboard.", "success")
+        #}}}
 
-        # Restart
-        elif command == "restart" or command == "r":
-            self.chat_view.display_message("Restarting Neuma...", "success")
-            time.sleep(1)
-            os.execv(sys.executable, ['python'] + sys.argv)
+        #}}}
 
-        # List modes
-        elif command == "modes" or command == "m":
+        #{{{ Modes
+
+        #{{{ List modes
+        elif command == "modes list" or command == "ml" or command == "m":
             modes = self.chat_model.list_modes()
             self.chat_view.display_message("Available modes:", "success")
             current_mode = self.chat_model.get_mode()
@@ -652,48 +743,50 @@ class ChatController:
                     self.chat_view.display_message(mode, "info")
                 else:
                     self.chat_view.display_message(mode, "answer")
+        #}}}
 
-        # Set mode
-        elif command.startswith("mode ") or command.startswith("m "):
+        #{{{ Set mode
+        elif command.startswith("mode set ") or command.startswith("ms ") or command.startswith("m "):
             mode = command.split(" ")[1]
             set_mode = self.chat_model.set_mode(mode)
             if isinstance(set_mode, Exception):
                 self.chat_view.display_message("Error setting mode: {}".format(set_mode), "error")
             else:
                 self.chat_view.display_message("Mode set to {}.".format(mode), "success")
-                time.sleep(1)
-                self.chat_view.clear_screen()
+        #}}}
 
-        # Clear screen
-        elif command == "clear" or command == "c":
-            self.chat_view.clear_screen()
+        #}}}
 
-        # Personae
-        elif command == "personae" or command == "p":
+        #{{{ Personae
+
+        #{{{ List Personae
+        elif command == "personae list" or command == "pl" or command == "p":
             personae = self.chat_model.list_personae()
 
-            log.log("Personae list: {}".format(personae))
             current_persona = self.chat_model.get_persona()
 
             for persona in personae["persona"]:
-                log.log("Persona {} ".format(persona["name"]))
                 if persona["name"] == current_persona:
                     self.chat_view.display_message(persona["name"], "info")
                 else:
                     self.chat_view.display_message(persona["name"], "answer")
+        #}}}
 
-        # Set persona
-        elif command.startswith("persona ") or command.startswith("p "):
+        #{{{ Set persona
+        elif command.startswith("persona ") or command.startswith("ps ") or command.startswith("p "):
             persona = command.split(" ")[1]
             set_persona = self.chat_model.set_persona(persona)
             if isinstance(set_persona, Exception):
                 self.chat_view.display_message("Error setting persona: {}".format(set_persona), "error")
             else:
                 self.chat_view.display_message("Persona set to {}.".format(persona), "success")
-            time.sleep(1)
-            self.chat_view.clear_screen()
+        #}}}
 
-        # Voice input
+        #}}}
+
+        #{{{ Voice
+
+        #{{{ Voice input
         elif command == "voice input" or command == "vi":
             # toggle input mode
             if self.input_mode == "text":
@@ -716,59 +809,69 @@ class ChatController:
             else:
                 self.input_mode = "text"
                 self.chat_view.display_message("Voice input mode disabled.", "success")
+        #}}}
 
-        # Voice output
+        #{{{ Voice output
         elif command == "voice output" or command == "vo":
             self.chat_model.set_voice_output(not self.chat_model.get_voice_output())
             if self.chat_model.get_voice_output():
                 self.chat_view.display_message("Voice output enabled.", "success")
             else:
                 self.chat_view.display_message("Voice output disabled.", "success")
-            time.sleep(1)
-            self.chat_view.clear_screen()
+        #}}}
 
-        # Copy answer to clipboard
-        elif command == "yank" or command == "y":
-            self.chat_model.copy_to_clipboard(self.chat_model.response)
-            self.chat_view.display_message("Copied to clipboard.", "success")
+        #{{{ List voices
+        elif command == "voices list" or command == "vl" or command == "v":
+            voices = self.chat_model.get_voices()
+            current_voice = self.chat_model.get_voice()
+            for voice in voices:
+                log.log("Voice {} ".format(voice))
+                log.log("Current voice {} ".format(current_voice))
+                if self.config["voices"][voice] == current_voice:
+                    self.chat_view.display_message(voice, "info")
+                else:
+                    self.chat_view.display_message(voice, "answer")
+        #}}}
 
-        # Copy discussion to clipboard
-        elif command == "yank all" or command == "ya":
-            self.chat_model.copy_to_clipboard(self.chat_model.get_discussion())
-            self.chat_view.display_message("Copied discussion to clipboard.", "success")
-
-        # Set the temperature
-        elif command.startswith("temp ") or command.startswith("t "):
-            temp = command[2:]
-            set_temp = self.chat_model.set_temperature(temp)
-            if isinstance(set_temp, Exception):
-                self.chat_view.display_message("Error setting temperature: {}".format(set_temp), "error")
+        #{{{ Set voice
+        elif command.startswith("voice ") or command.startswith("vs ") or command.startswith("v "):
+            voice = command.split(" ")[1]
+            set_voice = self.chat_model.set_voice(voice)
+            if isinstance(set_voice, Exception):
+                self.chat_view.display_message("Error setting voice: {}".format(set_voice), "error")
             else:
-                self.chat_view.display_message("Temperature set to {}.".format(temp), "success")
-                time.sleep(1)
-                self.chat_view.clear_screen()
+                self.chat_view.display_message("Voice set to {}.".format(voice), "success")
+        #}}}
 
-        # Export as SVG
-        elif command == "export" or command == "e":
-            self.chat_view.display_message("Exporting as SVG...", "info")
-            export = self.chat_model.export_as_svg(self.chat_view.console)
-            if isinstance(export, Exception):
-                self.chat_view.display_message("Error exporting as SVG: {}".format(export), "error")
-            else:
-                self.chat_view.display_message("Exported as thread.svg", "success")
+        #}}}
 
         # Normal prompt
         else:
 
+            # Start spinner
             with self.chat_view.console.status(""):
-                final_prompt = self.chat_model.generate_final_prompt(command)
-                response = self.chat_model.generate_response(final_prompt)
-            self.chat_view.console.status("").stop()
-            if isinstance(response, Exception):
-                self.chat_view.display_message("Error generating response: {}".format(response), "error")
-            else:
-                self.chat_view.display_response(response)
 
+                # Generate final prompt
+                try:
+                    final_prompt = self.chat_model.generate_final_prompt(command)
+
+                    # Generate response
+                    try:
+                        response = self.chat_model.generate_response(final_prompt)
+
+                        # Stop spinner
+                        self.chat_view.console.status("").stop()
+
+                        # Display response
+                        self.chat_view.display_response(response)
+
+                    # Error generating response
+                    except Exception as e:
+                        self.chat_view.display_message("Error generating response: {}".format(e), "error")
+
+                # Error generating final prompt
+                except Exception as e:
+                    self.chat_view.display_message("Error generating final prompt: {}".format(e), "error")
 
     #}}}
 
@@ -782,7 +885,6 @@ class ChatController:
     def exit_app(self):
         """ Exit the app. """
         self.chat_view.display_message("Exiting neuma, goodbye!", "info")
-        self.chat_view.console.print()
         sleep(1)
         self.chat_view.console.clear()
         exit()
