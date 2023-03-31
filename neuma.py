@@ -114,7 +114,7 @@ class ChatModel:
             voice = self.get_voice()
             log.log("Voice : {}".format(voice))
             language_code = voice[:5]
-            lang_prompt = "Write only in the language corresponding to this language code : " + language_code
+            lang_prompt = "Write only in " + language_code
         else:
             lang_prompt = ""
 
@@ -196,11 +196,10 @@ class ChatModel:
         #}}}
 
         #{{{ Table mode formatting
+        #TODO : Kill response if it starts with "As an AI model..."
         if self.mode == "table":
-            log.log("Table mode")
             lines = response.split("\n")
             lines = list(filter(None, lines))
-            log.log("Lines in response: {}".format(lines))
 
             # remove lines that contain '---'
             lines = [line for line in lines if "---" not in line]
@@ -557,11 +556,15 @@ class ChatView:
 
     def display_response(self, response: str) -> None:
         """ Display response in chat view or speak it """
-        # display the response
+
+        # Display the response
         self.display_message(response, "answer")
-        # speak the response
+
+        # Speak the response
         self.chat_controller.speak(response)
-        print("")
+
+        # New line
+        self.console.print()
 
 #}}}
 
@@ -607,7 +610,7 @@ class ChatController:
                 self.chat_view.display_response(response)
 
             if self.input_mode == "text":
-                user_input = self.chat_view.console.input("[bold]>[/bold] ")
+                user_input = self.chat_view.console.input("> ")
                 self.parse_command(user_input)
     #}}}
 
@@ -675,7 +678,7 @@ class ChatController:
             if isinstance(discussions_list, Exception):
                 self.chat_view.display_message("Error listing discussion: {}".format(discussion_list), "error")
             else:
-                self.chat_view.display_message("Discussions:", "success")
+                self.chat_view.display_message("Discussions", "section")
                 for discussion in discussions_list:
                     self.chat_view.display_message(discussion, "info")
         #}}}
@@ -736,13 +739,13 @@ class ChatController:
         #{{{ List modes
         elif command == "modes list" or command == "ml" or command == "m":
             modes = self.chat_model.list_modes()
-            self.chat_view.display_message("Available modes:", "success")
+            self.chat_view.display_message("Modes", "section")
             current_mode = self.chat_model.get_mode()
             for mode in modes:
                 if mode == current_mode:
-                    self.chat_view.display_message(mode, "info")
+                    self.chat_view.display_message(mode+" <", "info")
                 else:
-                    self.chat_view.display_message(mode, "answer")
+                    self.chat_view.display_message(mode, "info")
         #}}}
 
         #{{{ Set mode
@@ -762,14 +765,14 @@ class ChatController:
         #{{{ List Personae
         elif command == "personae list" or command == "pl" or command == "p":
             personae = self.chat_model.list_personae()
-
+            self.chat_view.display_message("Personae", "section")
             current_persona = self.chat_model.get_persona()
 
             for persona in personae["persona"]:
                 if persona["name"] == current_persona:
-                    self.chat_view.display_message(persona["name"], "info")
+                    self.chat_view.display_message(persona["name"]+" <", "info")
                 else:
-                    self.chat_view.display_message(persona["name"], "answer")
+                    self.chat_view.display_message(persona["name"], "info")
         #}}}
 
         #{{{ Set persona
@@ -859,8 +862,6 @@ class ChatController:
                     try:
                         response = self.chat_model.generate_response(final_prompt)
 
-                        # Stop spinner
-                        self.chat_view.console.status("").stop()
 
                         # Display response
                         self.chat_view.display_response(response)
@@ -872,6 +873,8 @@ class ChatController:
                 # Error generating final prompt
                 except Exception as e:
                     self.chat_view.display_message("Error generating final prompt: {}".format(e), "error")
+            # Stop spinner
+            # self.chat_view.console.status("").stop()
 
     #}}}
 
@@ -884,7 +887,7 @@ class ChatController:
     # Exit
     def exit_app(self):
         """ Exit the app. """
-        self.chat_view.display_message("Exiting neuma, goodbye!", "info")
+        self.chat_view.display_message("Exiting neuma, goodbye!", "success")
         sleep(1)
         self.chat_view.console.clear()
         exit()
