@@ -27,6 +27,8 @@ from rich import box
 from rich.syntax import Syntax
 
 ## TODO : Install missing packages automatically
+## TODO : Add a mode that looks into a file at specific lines
+
 
 #{{{ Logging
 class Logger:
@@ -45,6 +47,7 @@ class Logger:
         try:
             open(filename, 'a').close()
             self.file = open(filename, 'a')
+            self.file.truncate(0)
         except Exception as e:
             print(f"Error opening log file: {e}")
 
@@ -55,13 +58,16 @@ class Logger:
             level_value = self.level
 
         if level_value >= self.level:
-            self.file.write(f'{time.ctime()} [{level}] {message}\n')
-            self.file.flush()
+            write = self.file.write(f'{time.ctime()} [{level}] {message}\n')
+            if write:
+                self.file.flush()
+            else:
+                print(f'Error writing to log file: {write}')
 
     def close(self):
         self.file.close()
 
-log = Logger('neuma.log')
+log = Logger('/home/mike/scripts/neuma/neuma.log')
 #}}}
 
 #{{{ ChatModel
@@ -72,20 +78,48 @@ class ChatModel:
         self.mode = "" # Default mode
         self.persona = "" # Default persona
         self.voice_output = False # Default voice output
-        self.voice = self.config["voices"]["english"] # Default voice
+        # self.voice = self.config["voices"]["english"] # Default voice
+        self.voice = ""
+
+    #{{{ Get config
+    def get_config(self) -> dict:
+        """ Get config from config.toml """
+
+        if os.path.isfile(os.path.expanduser("~/.config/neuma/config.toml")):
+            config_path = os.path.expanduser("~/.config/neuma/config.toml")
+        else:
+            config_path = os.path.dirname(os.path.realpath(__file__)) + "/config.toml"
+        try:
+            with open(config_path, "r") as f:
+                config = toml.load(f)
+                log.log("Config loaded : OK")
+                return config
+        except Exception as e:
+            return e
+    #}}}
+
+    #{{{ Set config
+    def set_config(self, config: dict) -> None:
+        """ Set config """
+        self.config = config
+    #}}}
 
     #{{{ Generate final prompt
     def generate_final_prompt(self, new_prompt: str) -> str:
         """ Generate final prompt for OpenAI API """
+        log.log("generate_final_prompt()")
 
         # Persona prompt
         if self.persona != "":
             persona_prompt = self.get_persona_prompt()
-            persona_language_code = self.get_persona_language_code()
-            if persona_language_code != "":
-                persona_prompt += " Write only in " + persona_language_code + "."
+            # persona_language_code = self.get_persona_language_code()
+            # persona_language_code = self.get_persona_language_code()
+            # persona_prompt = ""
+            # if persona_language_code != "":
+                # persona_prompt += " Write only in " + persona_language_code + "."
         else:
             persona_prompt = ""
+        log.log("Persona prompt : {}".format(persona_prompt))
 
         # Discussion up to this point
         discussion = self.get_discussion()
@@ -108,15 +142,16 @@ class ChatModel:
                 mode_prompt = mode_prompt.replace("LANGUAGE", self.find_hashtag(new_prompt))
             else:
                 raise ValueError("No language code found in the prompt.")
+        log.log("Mode prompt : {}".format(mode_prompt))
 
         # Lang prompt
         if self.get_voice() != "" and self.mode != "trans":
             voice = self.get_voice()
-            log.log("Voice : {}".format(voice))
             language_code = voice[:5]
             lang_prompt = "Write only in " + language_code
         else:
             lang_prompt = ""
+        log.log("Lang prompt : {}".format(lang_prompt))
 
         # Final prompt
         final_prompt = f"{persona_prompt} {discussion} {new_prompt} {mode_prompt} {lang_prompt}"
@@ -144,6 +179,7 @@ class ChatModel:
                 presence_penalty = 0.5,
                 frequency_penalty = 0.5,
             )
+
             # Get the first completion
             self.response = chat_completions.choices[0].message.content
 
@@ -159,29 +195,6 @@ class ChatModel:
         except Exception as e:
             return e
 
-    #}}}
-
-    #{{{ Get config
-    def get_config(self) -> dict:
-        """ Get config from config.toml """
-
-        if os.path.isfile(os.path.expanduser("~/.config/neuma/config.toml")):
-            config_path = os.path.expanduser("~/.config/neuma/config.toml")
-        else:
-            config_path = os.path.dirname(os.path.realpath(__file__)) + "/config.toml"
-        try:
-            with open(config_path, "r") as f:
-                config = toml.load(f)
-                log.log("Config loaded : {}".format(config))
-                return config
-        except Exception as e:
-            return e
-    #}}}
-
-    #{{{ Set config
-    def set_config(self, config: dict) -> None:
-        """ Set config """
-        self.config = config
     #}}}
 
     #{{{ Process response
@@ -359,8 +372,12 @@ class ChatModel:
 
     # Set mode
     def set_mode(self, mode: str) -> None:
-        # TODO check if mode exists before setting
-        self.mode = mode
+        # Check if mode exists before setting
+        modes = self.list_modes()
+        if mode in modes:
+            self.mode = mode
+        else:
+            raise ValueError("No mode with that name found.")
 
     # List modes
     def list_modes(self) -> list:
@@ -629,7 +646,8 @@ class ChatController:
         elif command == "restart" or command == "r":
             self.chat_view.display_message("Restarting Neuma...", "success")
             time.sleep(1)
-            os.execv(sys.executable, ['python'] + sys.argv)
+            python = sys.executable
+            os.execl(python, python, * sys.argv)
         #}}}
 
         #{{{ Help
@@ -751,11 +769,11 @@ class ChatController:
         #{{{ Set mode
         elif command.startswith("mode set ") or command.startswith("ms ") or command.startswith("m "):
             mode = command.split(" ")[1]
-            set_mode = self.chat_model.set_mode(mode)
-            if isinstance(set_mode, Exception):
-                self.chat_view.display_message("Error setting mode: {}".format(set_mode), "error")
-            else:
+            try:
+                set_mode = self.chat_model.set_mode(mode)
                 self.chat_view.display_message("Mode set to {}.".format(mode), "success")
+            except Exception as e:
+                self.chat_view.display_message("Error setting mode: {}".format(e), "error")
         #}}}
 
         #}}}
@@ -787,26 +805,45 @@ class ChatController:
 
         #}}}
 
-        #{{{ Voice
+        #{{{ Languages / Voice
 
         #{{{ Voice input
         elif command == "voice input" or command == "vi":
+
             # toggle input mode
             if self.input_mode == "text":
                 self.input_mode = "voice"
                 self.chat_view.display_message("Voice input mode enabled.", "success")
+                # Start spinner
                 with self.chat_view.console.status(""):
+
+                    # Listen for voice input
                     self.voice_input = self.chat_model.listen()
+                    log.log("Listening for voice input...")
+
+                # Stop spinner
                 self.chat_view.console.status("").stop()
 
                 if isinstance(self.voice_input, Exception):
                     self.chat_view.display_message("Error with voice input: {}".format(self.voice_input), "error")
                 else:
+
+                    # Display voice input
                     self.chat_view.display_message(self.voice_input, "prompt")
+
+                    # Start spinner
                     with self.chat_view.console.status(""):
+
+                        # Generate final prompt
                         final_prompt = self.chat_model.generate_final_prompt(self.voice_input)
+
+                        # Generate response
                         response = self.chat_model.generate_response(final_prompt)
+
+                    # Stop spinner
                     self.chat_view.console.status("").stop()
+
+                    # Display response
                     self.chat_view.display_response(response)
 
             else:
@@ -823,27 +860,26 @@ class ChatController:
                 self.chat_view.display_message("Voice output disabled.", "success")
         #}}}
 
-        #{{{ List voices
-        elif command == "voices list" or command == "vl" or command == "v":
+        #{{{ List languages / voices
+        elif command == "languages list" or command == "ll" or command == "l":
             voices = self.chat_model.get_voices()
+            self.chat_view.display_message("Languages", "section")
             current_voice = self.chat_model.get_voice()
             for voice in voices:
-                log.log("Voice {} ".format(voice))
-                log.log("Current voice {} ".format(current_voice))
                 if self.config["voices"][voice] == current_voice:
                     self.chat_view.display_message(voice, "info")
                 else:
                     self.chat_view.display_message(voice, "answer")
         #}}}
 
-        #{{{ Set voice
-        elif command.startswith("voice ") or command.startswith("vs ") or command.startswith("v "):
+        #{{{ Set language / voice
+        elif command.startswith("language ") or command.startswith("ls ") or command.startswith("l "):
             voice = command.split(" ")[1]
             set_voice = self.chat_model.set_voice(voice)
             if isinstance(set_voice, Exception):
-                self.chat_view.display_message("Error setting voice: {}".format(set_voice), "error")
+                self.chat_view.display_message("Error setting language: {}".format(set_voice), "error")
             else:
-                self.chat_view.display_message("Voice set to {}.".format(voice), "success")
+                self.chat_view.display_message("Language set to {}.".format(voice), "success")
         #}}}
 
         #}}}
@@ -896,6 +932,7 @@ class ChatController:
 
 #{{{ Main
 def main():
+
 
     # Model
     chat_model = ChatModel()
