@@ -27,8 +27,7 @@ from rich import box
 from rich.syntax import Syntax
 
 ## TODO : Install missing packages automatically
-## TODO : Add a mode that looks into a file at specific lines
-
+## TODO : Add a mode that looks into a file at specific lines ?
 
 #{{{ Logging
 class Logger:
@@ -75,7 +74,7 @@ class ChatModel:
 
     def __init__(self):
         self.config = self.get_config()
-        self.mode = "" # Default mode
+        self.mode = "normal" # Default mode
         self.persona = "" # Default persona
         self.voice_output = False # Default voice output
         # self.voice = self.config["voices"]["english"] # Default voice
@@ -83,8 +82,7 @@ class ChatModel:
 
     #{{{ Get config
     def get_config(self) -> dict:
-        """ Get config from config.toml """
-
+        """ Get config from config.toml and API key from env """
         if os.path.isfile(os.path.expanduser("~/.config/neuma/config.toml")):
             config_path = os.path.expanduser("~/.config/neuma/config.toml")
         else:
@@ -92,90 +90,83 @@ class ChatModel:
         try:
             with open(config_path, "r") as f:
                 config = toml.load(f)
-                log.log("Config loaded : OK")
-                return config
+                api_key = os.getenv("OPENAI_API_KEY")
+                if api_key:
+                    config["openai"]["api_key"] = api_key
+                    log.log("Config loaded")
+                    return config
+                else:
+                    raise ValueError("No API key found in environment variables.")
         except Exception as e:
             return e
     #}}}
 
-    #{{{ Set config
-    def set_config(self, config: dict) -> None:
-        """ Set config """
-        self.config = config
-    #}}}
-
     #{{{ Generate final prompt
-    def generate_final_prompt(self, new_prompt: str) -> str:
-        """ Generate final prompt for OpenAI API """
-        log.log("generate_final_prompt()")
-
-        # Persona prompt
-        if self.persona != "":
-            persona_prompt = self.get_persona_prompt()
-            # persona_language_code = self.get_persona_language_code()
-            # persona_language_code = self.get_persona_language_code()
-            # persona_prompt = ""
-            # if persona_language_code != "":
-                # persona_prompt += " Write only in " + persona_language_code + "."
-        else:
-            persona_prompt = ""
-        log.log("Persona prompt : {}".format(persona_prompt))
-
-        # Discussion up to this point
-        discussion = self.get_discussion()
+    def generate_final_message(self, user_prompt: str) -> list:
+        """ Generate final prompt (messages) for OpenAI API """
 
         # Add a dot at the end of the prompt if there isn't one
-        if new_prompt[-1] not in ["?", "!", "."]:
-            new_prompt += "."
-        self.new_prompt = new_prompt
+        if user_prompt[-1] not in ["?", "!", "."]:
+            user_prompt += "."
+        self.user_prompt = user_prompt
 
-        # Mode prompt
-        if self.mode and self.mode != "normal":
-            mode_prompt = self.config["modes"][self.mode]
+        # Conversation up to this point
+        conversation = self.get_conversation()
+        log.log("conversation: {}".format(conversation))
+
+        # if this is the first message, add the mode instructions and persona
+        if conversation == None:
+            log.log("new conversation")
+            messages = []
+
+            # Mode instructions
+            log.log("Mode : {}".format(self.mode))
+            mode_instructions = self.config["modes"][self.mode]
+            if mode_instructions:
+                # in mode_instructions, replace # with all the text after # in the user_prompt
+                mode_instructions = mode_instructions.replace("#", user_prompt[user_prompt.find("#")+1:])
+                mode_instructions_message = {"role": "system", "content": mode_instructions}
+                self.add_to_conversation(mode_instructions_message)
+                messages.append(mode_instructions_message)
+                log.log("Mode instructions : {}".format(mode_instructions_message))
+
+            # Persona identity
+            if self.persona:
+                log.log("Persona : {}".format(self.persona))
+                persona_identity = self.get_persona_identity()
+                persona_identity_message = {"role": "system", "content": persona_identity}
+                self.add_to_conversation(persona_identity_message)
+                messages.append(persona_identity_message)
+                log.log("Persona identity : {}".format(persona_identity_message))
         else:
-            mode_prompt = ""
+            messages = conversation
 
-        # Pass the language code to the prompt
-        if self.mode == "trans":
-            hashtag = self.find_hashtag(new_prompt)
-            if hashtag:
-                mode_prompt = mode_prompt.replace("LANGUAGE", self.find_hashtag(new_prompt))
-            else:
-                raise ValueError("No language code found in the prompt.")
-        log.log("Mode prompt : {}".format(mode_prompt))
+        # User input
+        user_prompt = {"role": "user", "content": user_prompt}
+        messages.append(user_prompt)
+        self.add_to_conversation(user_prompt)
+        log.log("User prompt : {}".format(user_prompt))
+        log.log("Final messages: {}".format(messages))
 
-        # Lang prompt
-        if self.get_voice() != "" and self.mode != "trans":
-            voice = self.get_voice()
-            language_code = voice[:5]
-            lang_prompt = "Write only in " + language_code
-        else:
-            lang_prompt = ""
-        log.log("Lang prompt : {}".format(lang_prompt))
-
-        # Final prompt
-        final_prompt = f"{persona_prompt} {discussion} {new_prompt} {mode_prompt} {lang_prompt}"
-        log.log("Final prompt: {}".format(final_prompt))
-
-        return final_prompt
+        return messages
 
     #}}}
 
-    #{{{ Generate response
-    def generate_response(self, final_prompt: str) -> str:
+    #{{{ Generate response from OpenAI API
+    def generate_response(self, messages: list) -> str:
         """ Generate response from OpenAI API """
 
         try:
             chat_completions = openai.ChatCompletion.create(
                 api_key=os.getenv("OPENAI_API_KEY"),
-                model = self.config["chatgpt"]["model"],
-                messages =[{"role": "user", "content": final_prompt}],
-                temperature = self.config["chatgpt"]["temperature"],
+                model = self.config["openai"]["model"],
+                messages = messages,
+                temperature = self.config["openai"]["temperature"],
                 top_p = 1,
                 n = 1,
                 stream = False,
                 stop = None,
-                max_tokens = self.config["chatgpt"]["max_tokens"],
+                max_tokens = self.config["openai"]["max_tokens"],
                 presence_penalty = 0.5,
                 frequency_penalty = 0.5,
             )
@@ -183,9 +174,10 @@ class ChatModel:
             # Get the first completion
             self.response = chat_completions.choices[0].message.content
 
-            # Add to discussion
-            self.add_to_discussion(self.new_prompt)
-            self.add_to_discussion(self.response)
+            # Add to conversation
+            response_message = {"role": "assistant", "content": self.response}
+            log.log("Response : {}".format(response_message))
+            self.add_to_conversation(response_message)
 
             # Process the response
             self.processed_response = self.process_response(self.response);
@@ -236,7 +228,7 @@ class ChatModel:
 
         #{{{ Code mode formatting
         elif self.mode == "code":
-            language = self.find_hashtag(self.new_prompt)
+            language = self.find_hashtag(self.user_prompt)
             syntax = Syntax(response, language, line_numbers=True, theme="gruvbox-dark", word_wrap=True)
             return syntax
         #}}}
@@ -252,14 +244,16 @@ class ChatModel:
         """ List the available personae from the personae file """
         if os.path.isfile(os.path.expanduser("~/.config/neuma/personae.toml")):
             personae_path = os.path.expanduser("~/.config/neuma/personae.toml")
+            log.log("Personae path : {}".format(personae_path))
         else:
             personae_path = os.path.dirname(os.path.realpath(__file__)) + "/personae.toml"
+            log.log("Personae path : {}".format(personae_path))
         try:
             with open(personae_path, "r") as f:
                 personae = toml.load(f)
+                log.log("Personae : {}".format(personae))
         except Exception as e:
             return e
-        log.log("Personae loaded : {}".format(personae))
         return personae
 
     # Set persona
@@ -272,15 +266,15 @@ class ChatModel:
         return self.persona
 
     # Get persona prompt
-    def get_persona_prompt(self) -> str:
+    def get_persona_identity(self) -> list:
         if self.persona != "":
             personae = self.list_personae()
             for persona in personae["persona"]:
                 if persona["name"] == self.persona:
-                    persona_prompt = persona["rule"]
+                    persona_identity = persona["messages"]
         else:
-            persona_prompt = ""
-        return persona_prompt
+            persona_identity = ""
+        return persona_identity
 
     # Get persona language code
     def get_persona_language_code(self) -> str:
@@ -306,55 +300,64 @@ class ChatModel:
 
     # }}}
 
-    #{{{ Discussion
+    #{{{ Conversation
 
-    # Create new discussion
-    def new_discussion(self) -> None:
-        self.discussion = ""
+    # Create new conversation
+    def new_conversation(self) -> list:
+        self.conversation = []
 
-    # Add message to discussion
-    def add_to_discussion(self, message: str) -> None:
-        self.discussion += message + "\n\n"
+    # Add message to conversation
+    def add_to_conversation(self, message: list) -> None:
+        self.conversation.append(message)
 
-    # Get discussion
-    def get_discussion(self) -> str:
-        return self.discussion
+    # Get conversation
+    def get_conversation(self) -> list:
+        if self.conversation:
+            return self.conversation
+        else:
+            new_conversation = self.new_conversation()
+            return new_conversation
 
-    # Save discussion
-    def save_discussion(self, filename: str) -> bool:
-        data_folder = self.config["discussions"]["data_folder"]
-        # write discussion to a file
+    # Save conversation, write it to a file
+    def save_conversation(self, filename: str) -> bool:
+        data_folder = self.config["conversations"]["data_folder"]
         try:
             with open(data_folder + filename, "w") as f:
-                f.write(self.discussion)
+                log.log("Conversation : {}".format(self.conversation))
+                output = ""
+                for message in self.conversation:
+                    log.log("Message : {}".format(message))
+                    # CONT
+                    output += message['content'] + "\n\n"
+                f.write(output)
         except Exception as e:
             return e
         return True
 
-    # List discussions
-    def list_discussions(self) -> list:
-        data_folder = self.config["discussions"]["data_folder"]
-        # Get list of files
+    # List conversations
+    def list_conversations(self) -> list:
+        data_folder = self.config["conversations"]["data_folder"]
         try:
             files = os.listdir(data_folder)
         except Exception as e:
             return e
         return files
 
-    # Open discussion
-    def open_discussion(self, filename: str) -> str:
-        data_folder = self.config["discussions"]["data_folder"]
+    # Open conversation
+    def open_conversation(self, filename: str) -> str:
+        data_folder = self.config["conversations"]["data_folder"]
         # Get list of files
         try:
             with open(data_folder + filename, "r") as f:
-                self.discussion = f.read()
+                self.conversation = f.read()
+
         except Exception as e:
             return e
         return True
 
-    # Delete discussion
-    def delete_discussion(self, filename: str) -> bool:
-        data_folder = self.config["discussions"]["data_folder"]
+    # Trash conversation
+    def trash_conversation(self, filename: str) -> bool:
+        data_folder = self.config["conversations"]["data_folder"]
         # Get list of files
         try:
             os.remove(data_folder+filename)
@@ -390,6 +393,16 @@ class ChatModel:
             if word.startswith("#"):
                 return word[1:]
         return False
+
+    #}}}
+
+    #{{{ Models
+
+    #{{{ List models
+    def list_models(self) -> list:
+        models = openai.Model.list()
+        return models
+    #}}}
 
     #}}}
 
@@ -503,18 +516,8 @@ class ChatModel:
 
     #{{{ Set temperature
     def set_temperature(self, temperature: float) -> bool:
-        self.config["chatgpt"]["temperature"] = float(temperature)
+        self.config["openai"]["temperature"] = float(temperature)
         return True
-    #}}}
-
-    #{{{ Export as SVG
-    def export_as_svg(self, console ) -> bool:
-        svg = console.export_svg()
-        if svg:
-            with open("thread.svg", "w") as f:
-                f.write(svg)
-            return True
-        return False
     #}}}
 
 #}}}
@@ -525,15 +528,11 @@ class ChatView:
     def __init__(self):
         self.chat_controller = None
         self.config = None
+        self.console = None
+        self.chat_controller = None
 
-    def set_controller(self, chat_controller: object) -> None:
-        self.chat_controller = chat_controller
-
-    def set_config(self, config: dict) -> None:
-        self.config = config
-
-    def set_console(self, console: object) -> None:
-        self.console = console
+    # def set_controller(self, chat_controller: object) -> None:
+    #     self.chat_controller = chat_controller
 
     def display_message(self, message: str, style: str) -> None:
         """ Display message in chat view """
@@ -546,27 +545,28 @@ class ChatView:
 
     def display_help(self) -> None:
         """ Display help table with list of commands and aliases """
-        help_table = Table(show_lines=True,box=box.SIMPLE,padding=(0,1))
+        help_table = Table()
         help_table.add_column("Command")
-        help_table.add_column("Alias", justify="center")
+        help_table.add_column("Alias")
         help_table.add_column("Description")
-        help_table.add_row("help","h", "Display this help page")
+        help_table.add_row("help","h", "Display this help section")
         help_table.add_row("restart","r", "Restart application")
-        help_table.add_row("discussion create","dc", "Create a new discussion")
-        help_table.add_row("discussion save","ds", "Save the current discussion")
-        help_table.add_row("discussion list","dl", "List saved discussions")
-        help_table.add_row("discussion open","do", "Open a saved discussion")
-        help_table.add_row("discussion delete","dd", "Delete a saved discussion")
-        help_table.add_row("modes","m", "List the available display modes")
-        help_table.add_row("mode [mode]" ,"m [mode]", "Switch to mode [mode]")
-        help_table.add_row("personae","p", "List the available personae")
-        help_table.add_row("persona [persona]","p [persona]", "Switch to persona [persona]")
+        help_table.add_row("conversations","c", "List saved conversations")
+        help_table.add_row("conversation open \[conversation]","c \[conversation]", "Open conversation \[conversation]")
+        help_table.add_row("conversation create","cc", "Create a new conversation")
+        help_table.add_row("conversation save","cs", "Save the current conversation")
+        help_table.add_row("conversation trash \[conversation]","ct \[conversation]", "Trash conversation \[conversation]")
+        help_table.add_row("conversation yank","cy", "Copy current conversation to clipboard")
+        help_table.add_row("modes","m", "List available modes")
+        help_table.add_row("mode \[mode]" ,"m \[mode]", "Switch to mode \[mode]")
+        help_table.add_row("personae","p", "List available personae")
+        help_table.add_row("persona \[persona]","p \[persona]", "Switch to persona \[persona]")
+        help_table.add_row("languages","l", "List available languages")
+        help_table.add_row("language \[language]","l \[language]", "Set language to \[language]")
         help_table.add_row("voice input","vi", "Switch to voice input")
         help_table.add_row("voice ouput","vo", "Switch on voice output")
         help_table.add_row("yank","y", "Copy last answer to clipboard")
-        help_table.add_row("yank all","ya", "Copy whole conversation to clipboard")
-        help_table.add_row("temp [temp]","p [temp]", "Set the temperature to [temp]")
-        help_table.add_row("export","e", "Export as svg")
+        help_table.add_row("temp \[temp]","p \[temp]", "Set the temperature to \[temp]")
         help_table.add_row("clear","c", "Clear the screen")
         help_table.add_row("quit","q", "Quit")
         self.console.print(help_table)
@@ -589,18 +589,22 @@ class ChatView:
 class ChatController:
 
     def __init__(self, chat_model, chat_view):
+
         self.chat_model = chat_model
         self.chat_view = chat_view
-        self.chat_view.set_controller(self)
-        self.config = self.chat_model.config
-        self.chat_view.set_config(self.config)
+
+        self.chat_view.config = self.chat_model.config
+
+        self.chat_view.chat_controller = self
+
         self.input_mode = "text"
+
         self.console = Console(
             theme=Theme(self.chat_model.config["theme"]),
             record=True,
             color_system="truecolor",
         )
-        self.chat_view.set_console(self.console)
+        self.chat_view.console = self.console
 
     #{{{ Startup
     def start(self):
@@ -609,8 +613,8 @@ class ChatController:
         # Clear the screen
         self.chat_view.clear_screen()
 
-        # Create a new discussion
-        self.chat_model.new_discussion()
+        # Create a new conversation
+        self.chat_model.new_conversation()
 
         # Display the user input prompt
         while True:
@@ -620,8 +624,8 @@ class ChatController:
 
                     self.voice_input = self.chat_model.listen()
                     self.console.print("> "+self.voice_input)
-                    final_prompt = self.chat_model.generate_final_prompt(self.voice_input)
-                    response = self.chat_model.generate_response(final_prompt)
+                    final_message = self.chat_model.generate_final_message(self.voice_input)
+                    response = self.chat_model.generate_response(final_message)
 
                 self.chat_view.console.status("").stop()
                 self.chat_view.display_response(response)
@@ -656,7 +660,7 @@ class ChatController:
         #}}}
 
         #{{{ Clear screen
-        elif command == "clear" or command == "c":
+        elif command == "clear" or command == "cls":
             self.chat_view.clear_screen()
         #}}}
 
@@ -676,78 +680,68 @@ class ChatController:
                 self.chat_view.display_message("Temperature set to {}.".format(temp), "success")
         #}}}
 
-        #{{{ Export as SVG
-        elif command == "export" or command == "e":
-            self.chat_view.display_message("Exporting as SVG...", "info")
-            export = self.chat_model.export_as_svg(self.chat_view.console)
-            if isinstance(export, Exception):
-                self.chat_view.display_message("Error exporting as SVG: {}".format(export), "error")
+        #}}}
+
+        #{{{ Conversations
+
+        #{{{ List conversations
+        elif command == "conversations" or command == "c":
+            conversations_list = self.chat_model.list_conversations()
+            if isinstance(conversations_list, Exception):
+                self.chat_view.display_message("Error listing conversation: {}".format(conversation_list), "error")
             else:
-                self.chat_view.display_message("Exported as thread.svg", "success")
+                self.chat_view.display_message("Conversations", "section")
+                for conversation in conversations_list:
+                    self.chat_view.display_message(conversation, "info")
         #}}}
 
-        #}}}
-
-        #{{{ Discussions
-
-        #{{{ List discussions
-        elif command == "discussion list" or command == "dl" or command == "d":
-            discussions_list = self.chat_model.list_discussions()
-            if isinstance(discussions_list, Exception):
-                self.chat_view.display_message("Error listing discussion: {}".format(discussion_list), "error")
-            else:
-                self.chat_view.display_message("Discussions", "section")
-                for discussion in discussions_list:
-                    self.chat_view.display_message(discussion, "info")
-        #}}}
-
-        #{{{ Create discussion
-        elif command == "discussion create" or command == "dc":
-            self.chat_model.new_discussion()
+        #{{{ Create conversation
+        elif command == "conversation create" or command == "cc":
+            self.chat_model.new_conversation()
             self.chat_model.set_persona("")
             self.chat_view.mode = "normal"
-            self.chat_view.display_message("New discussion.", "success")
+            self.chat_view.display_message("New conversation.", "success")
         #}}}
 
-        #{{{ Save discussion
-        elif command.startswith("discussion save ") or command.startswith("ds "):
+        #{{{ Save conversation
+        elif command.startswith("conversation save ") or command.startswith("cs "):
             filename = command.split(" ")[1]
-            save = self.chat_model.save_discussion(filename)
+            save = self.chat_model.save_conversation(filename)
             if isinstance(save, Exception):
-                self.chat_view.display_message("Error saving discussion: {}".format(save), "error")
+                self.chat_view.display_message("Error saving conversation: {}".format(save), "error")
             else:
-                self.chat_view.display_message("Discussion saved.", "success")
+                self.chat_view.display_message("conversation saved.", "success")
         #}}}
 
-        #{{{ Open discussion
-        elif command.startswith("discussion open ") or command.startswith("do "):
+        #{{{ Open conversation
+        elif command.startswith("conversation ") or command.startswith("c "):
             filename = command.split(" ")[1]
             if filename == "":
                 self.chat_view.display_message("Please specify a filename.", "error")
-            open_discussion = self.chat_model.open_discussion(filename)
-            if isinstance(open_discussion, Exception):
-                self.chat_view.display_message("Error opening discussion: {}".format(open_discussion), "error")
+            open_conversation = self.chat_model.open_conversation(filename)
+            if isinstance(open_conversation, Exception):
+                self.chat_view.display_message("Error opening conversation: {}".format(open_conversation), "error")
             else:
-                self.chat_view.display_message("Discussion opened.", "success")
+                self.chat_view.display_message("conversation opened.", "success")
                 sleep(1)
                 self.chat_view.clear_screen()
-                self.chat_view.display_message(self.chat_model.get_discussion(), "answer")
+                self.chat_view.display_message(self.chat_model.get_conversation(), "answer")
         #}}}
 
-        #{{{ Delete discussion
-        elif command.startswith("discussion delete ") or command.startswith("dd "):
+        #{{{ Trash conversation
+        elif command.startswith("conversation trash ") or command.startswith("ct "):
             filename = command.split(" ")[1]
-            delete_discussion = self.chat_model.delete_discussion(filename)
-            if isinstance(delete_discussion, Exception):
-                self.chat_view.display_message("Error deleting discussion: {}".format(delete_discussion), "error")
+            trash_conversation = self.chat_model.trash_conversation(filename)
+            if isinstance(trash_conversation, Exception):
+                self.chat_view.display_message("Error trashing conversation: {}".format(trash_conversation), "error")
             else:
-                self.chat_view.display_message("Discussion deleted.", "success")
+                self.chat_view.display_message("conversation trashed.", "success")
         #}}}
 
-        #{{{ Copy discussion to clipboard
-        elif command == "discussion yank" or command == "dy":
-            self.chat_model.copy_to_clipboard(self.chat_model.get_discussion())
-            self.chat_view.display_message("Copied discussion to clipboard.", "success")
+        #{{{ Copy conversation to clipboard
+        elif command == "conversation yank" or command == "cy":
+            self.chat_model.copy_to_clipboard(self.chat_model.get_conversation())
+            self.chat_view.display_message("Copied conversation to clipboard.", "success")
         #}}}
 
         #}}}
@@ -755,7 +749,7 @@ class ChatController:
         #{{{ Modes
 
         #{{{ List modes
-        elif command == "modes list" or command == "ml" or command == "m":
+        elif command == "modes" or command == "m":
             modes = self.chat_model.list_modes()
             self.chat_view.display_message("Modes", "section")
             current_mode = self.chat_model.get_mode()
@@ -767,7 +761,7 @@ class ChatController:
         #}}}
 
         #{{{ Set mode
-        elif command.startswith("mode set ") or command.startswith("ms ") or command.startswith("m "):
+        elif command.startswith("mode ") or command.startswith("m "):
             mode = command.split(" ")[1]
             try:
                 set_mode = self.chat_model.set_mode(mode)
@@ -781,7 +775,7 @@ class ChatController:
         #{{{ Personae
 
         #{{{ List Personae
-        elif command == "personae list" or command == "pl" or command == "p":
+        elif command == "personae" or command == "p":
             personae = self.chat_model.list_personae()
             self.chat_view.display_message("Personae", "section")
             current_persona = self.chat_model.get_persona()
@@ -794,7 +788,7 @@ class ChatController:
         #}}}
 
         #{{{ Set persona
-        elif command.startswith("persona ") or command.startswith("ps ") or command.startswith("p "):
+        elif command.startswith("persona ") or command.startswith("p "):
             persona = command.split(" ")[1]
             set_persona = self.chat_model.set_persona(persona)
             if isinstance(set_persona, Exception):
@@ -835,10 +829,10 @@ class ChatController:
                     with self.chat_view.console.status(""):
 
                         # Generate final prompt
-                        final_prompt = self.chat_model.generate_final_prompt(self.voice_input)
+                        final_message = self.chat_model.generate_final_message(self.voice_input)
 
                         # Generate response
-                        response = self.chat_model.generate_response(final_prompt)
+                        response = self.chat_model.generate_response(final_message)
 
                     # Stop spinner
                     self.chat_view.console.status("").stop()
@@ -861,19 +855,19 @@ class ChatController:
         #}}}
 
         #{{{ List languages / voices
-        elif command == "languages list" or command == "ll" or command == "l":
+        elif command == "languages" or command == "l":
             voices = self.chat_model.get_voices()
             self.chat_view.display_message("Languages", "section")
             current_voice = self.chat_model.get_voice()
             for voice in voices:
-                if self.config["voices"][voice] == current_voice:
+                if self.chat_model.config["voices"][voice] == current_voice:
                     self.chat_view.display_message(voice, "info")
                 else:
                     self.chat_view.display_message(voice, "answer")
         #}}}
 
         #{{{ Set language / voice
-        elif command.startswith("language ") or command.startswith("ls ") or command.startswith("l "):
+        elif command.startswith("language ") or command.startswith("l "):
             voice = command.split(" ")[1]
             set_voice = self.chat_model.set_voice(voice)
             if isinstance(set_voice, Exception):
@@ -892,12 +886,11 @@ class ChatController:
 
                 # Generate final prompt
                 try:
-                    final_prompt = self.chat_model.generate_final_prompt(command)
+                    final_message = self.chat_model.generate_final_message(command)
 
                     # Generate response
                     try:
-                        response = self.chat_model.generate_response(final_prompt)
-
+                        response = self.chat_model.generate_response(final_message)
 
                         # Display response
                         self.chat_view.display_response(response)
@@ -908,7 +901,7 @@ class ChatController:
 
                 # Error generating final prompt
                 except Exception as e:
-                    self.chat_view.display_message("Error generating final prompt: {}".format(e), "error")
+                    self.chat_view.display_message("Error generating final message: {}".format(e), "error")
             # Stop spinner
             # self.chat_view.console.status("").stop()
 
@@ -932,7 +925,6 @@ class ChatController:
 
 #{{{ Main
 def main():
-
 
     # Model
     chat_model = ChatModel()
