@@ -1,1 +1,30 @@
-/home/mike/.config/neuma/config.toml
+[openai]
+model = "gpt-3.5-turbo-0301"
+temperature = 1
+max_tokens = 2048
+
+[voices]
+english = "en-GB-Neural2-B"
+french = "fr-FR-Neural2-C"
+german = "de-DE-Neural2-B"
+spanish = "es-ES-Neural2-B"
+russian = "ru-RU-Wavenet-B"
+
+[conversations]
+data_folder = ""
+
+[modes]
+normal = ""
+table = "Output only raw values separated by a '|', nothing else."
+code = "Output only # code, nothing else."
+trans = "Translate this into # : "
+char = "I want you to act like #. I want you to respond and answer like # using the tone, manner and vocabulary # would use. Do not write any explanations. Only answer like #. You must know all of the knowledge of #. My first sentence is : "
+
+[theme]
+section = "#d3869b" # pink
+info = "#8ec07c" # aqua
+success = "#b8bb26" # green
+warning = "#fabd2f" # yellow
+error = "#fb4934" # red
+prompt = "#928374" # grey
+answer = "#83a598" # blue
