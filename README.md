@@ -56,7 +56,7 @@ A conversaton is a series of prompts and answers.
 
 ### Modes
 
-Modes define specific expected output behaviors. You can add custom modes by editing the `[modes]` section in the config file.
+Modes define specific expected output behaviors. Custom modes are added by editing the `[modes]` section in the `config.toml` file.
 
 `modes` or `m` : List available modes
 
@@ -64,33 +64,44 @@ Modes define specific expected output behaviors. You can add custom modes by edi
 
 #### Available modes
 
-**table** : Displays the response in a table
-
-**code** : Displays only code
-
-**trans** : Displays translations
-
-**char** : Impersonates any character, real or fiction
+- **table** : Displays the response in a table
+- **code** : Displays only code
+- **trans** : Displays translations
+- **char** : Impersonates any character, real or fiction
 
 ### Personae
 
-Personae are profiles defined by a specifi starting prompt. You can define them in the personae.toml file.
+Personae are profiles defined by a specific starting prompt and are defined in the `personae.toml` file.
 
+`personae` or `p` : List available personae
 
+`persona [persona]` or `p [persona]` : Switch to persona
 
+### Voice output
 
+Voice output languages are defined in `config.toml`, here's a [list of supported voices](https://cloud.google.com/text-to-speech/docs/voices)
 
+`languages` or `l` : List available languages for voice output
 
-Available modes :
+`language [language]` or `l [language]` : Set language to [language]
 
-`table`
+`voice output` or `vo` : Toggle voice output
 
+### Voice input
 
+Voice input can be used to transcribe voice to text.
 
+`voice input` or `vi` :  Switch to voice input
 
+### Other commands
 
+`yank` or `y` : Copy the last answer to the clipboard
 
+`temp [temperature]` or `t [temperature]` : Sets the ChatGPT model [temperature](https://platform.openai.com/docs/api-reference/completions/create#completions/create-temperature).
 
+`clear` or `cls` : Clear the screen
 
+`restart` or `r` : Restart the application
 
+`quit` or `q` : Quit
 
