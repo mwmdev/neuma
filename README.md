@@ -43,8 +43,49 @@ Press `h` followed by `Enter` to list all the commands.
 A conversaton is a series of prompts and answers.
 
 `conversations` or `c` : List all saved conversations
+
 `conversation open [conversation]` or `c [conversation]` : Open conversation [conversation]
+
 `conversation create` or `cc` : Create a new conversation
+
+`conversation save [conversation]` or `cs [conversation]` : Save the current conversation as [conversation]
+
+`conversation trash [conversation] or `ct [conversation]` : Trash the conversation [conversation]
+
+`conversation yank` or `cy` : Copy the current conversation to the clipboard
+
+### Modes
+
+Modes define specific expected output behaviors. You can add custom modes by editing the `[modes]` section in the config file.
+
+`modes` or `m` : List available modes
+
+`mode [mode]` or `m [mode]` : Switch to mode [mode]
+
+#### Available modes
+
+**table** : Displays the response in a table
+
+**code** : Displays only code
+
+**trans** : Displays translations
+
+**char** : Impersonates any character, real or fiction
+
+### Personae
+
+Personae are profiles defined by a specifi starting prompt. You can define them in the personae.toml file.
+
+
+
+
+
+
+Available modes :
+
+`table`
+
+
 
 
 
