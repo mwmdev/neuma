@@ -2,6 +2,8 @@
 
 Neuma is a ChatGPT interface for the command line written in python.
 
+https://user-images.githubusercontent.com/31964517/232592981-fa89e5b0-f0b5-4688-afff-34a82b65d939.mp4
+
 ## Installation
 
 Clone this repository to your local machine using the following command:
