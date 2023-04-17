@@ -26,9 +26,6 @@ from rich.table import Table
 from rich import box
 from rich.syntax import Syntax
 
-## TODO : Install missing packages automatically
-## TODO : Add a mode that looks into a file at specific lines ?
-
 #{{{ Logging
 class Logger:
 
@@ -322,12 +319,9 @@ class ChatModel:
     def save_conversation(self, filename: str) -> bool:
         data_folder = self.config["conversations"]["data_folder"]
         try:
-            with open(data_folder + filename, "w") as f:
-                log.log("Conversation : {}".format(self.conversation))
+            with open(data_folder + filename + '.neu', "w") as f:
                 output = ""
                 for message in self.conversation:
-                    log.log("Message : {}".format(message))
-                    # CONT
                     output += message['content'] + "\n\n"
                 f.write(output)
         except Exception as e:
@@ -338,7 +332,7 @@ class ChatModel:
     def list_conversations(self) -> list:
         data_folder = self.config["conversations"]["data_folder"]
         try:
-            files = os.listdir(data_folder)
+            files = [f for f in os.listdir(data_folder) if f.endswith('.neu')]
         except Exception as e:
             return e
         return files
@@ -348,7 +342,7 @@ class ChatModel:
         data_folder = self.config["conversations"]["data_folder"]
         # Get list of files
         try:
-            with open(data_folder + filename, "r") as f:
+            with open(data_folder + filename + ".neu", "r") as f:
                 self.conversation = f.read()
 
         except Exception as e:
@@ -360,7 +354,7 @@ class ChatModel:
         data_folder = self.config["conversations"]["data_folder"]
         # Get list of files
         try:
-            os.remove(data_folder+filename)
+            os.remove(data_folder+filename+".neu")
         except Exception as e:
             return e
         return True
@@ -688,7 +682,7 @@ class ChatController:
         elif command == "conversations" or command == "c":
             conversations_list = self.chat_model.list_conversations()
             if isinstance(conversations_list, Exception):
-                self.chat_view.display_message("Error listing conversation: {}".format(conversation_list), "error")
+                self.chat_view.display_message("Error listing conversation: {}".format(conversations_list), "error")
             else:
                 self.chat_view.display_message("Conversations", "section")
                 for conversation in conversations_list:
