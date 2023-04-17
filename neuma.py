@@ -499,13 +499,11 @@ class ChatModel:
     #}}}
 
     #{{{ Copy to clipboard
-    def copy_to_clipboard(self, text: str) -> None:
-        # remove double line breaks between paragraphs
-        # text = re.sub(r"\n\n+", "\n", text)
-        # remove leading and trailing whitespace
-        text = text.strip()
-        # copy to clipboard
-        pyperclip.copy(text)
+    def copy_to_clipboard(self, conversation: list) -> None:
+        output = ""
+        for message in conversation:
+            output += message['content'] + "\n\n"
+        pyperclip.copy(output)
     #}}}
 
     #{{{ Set temperature
