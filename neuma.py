@@ -159,7 +159,7 @@ class ChatModel:
                 model = self.config["openai"]["model"],
                 messages = messages,
                 temperature = self.config["openai"]["temperature"],
-                top_p = 1,
+                top_p = self.config["openai"]["top_p"],
                 n = 1,
                 stream = False,
                 stop = None,
