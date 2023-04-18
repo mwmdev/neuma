@@ -1,6 +1,7 @@
 [openai]
 model = "gpt-3.5-turbo-0301"
 temperature = 1
+top_p = 1
 max_tokens = 2048
 
 [voices]
@@ -11,11 +12,11 @@ spanish = "es-ES-Neural2-B"
 russian = "ru-RU-Wavenet-B"
 
 [conversations]
-data_folder = ""
+data_folder = "./"
 
 [modes]
 normal = ""
-table = "Output only raw values separated by a '|', nothing else."
+table = "Output only raw values separated by a '|', nothing else. On the first line list the column headers as I listed them at the end of my prompt : "
 code = "Output only # code, nothing else."
 trans = "Translate this into # : "
 char = "I want you to act like #. I want you to respond and answer like # using the tone, manner and vocabulary # would use. Do not write any explanations. Only answer like #. You must know all of the knowledge of #. My first sentence is : "
