@@ -153,17 +153,26 @@ class ChatModel:
     def generate_response(self, messages: list) -> str:
         """ Generate response from OpenAI API """
 
+        api_key = os.getenv("OPENAI_API_KEY")
+        model = self.config["openai"]["model"]
+        temperature = self.config["openai"]["temperature"]
+        log.log("temperature: {}".format(temperature))
+        top_p = self.config["openai"]["top_p"]
+        log.log("top_p: {}".format(top_p))
+        max_tokens = self.config["openai"]["max_tokens"]
+        log.log("max_tokens: {}".format(max_tokens))
+
         try:
             chat_completions = openai.ChatCompletion.create(
-                api_key=os.getenv("OPENAI_API_KEY"),
-                model = self.config["openai"]["model"],
+                api_key = api_key,
+                model = model,
                 messages = messages,
-                temperature = self.config["openai"]["temperature"],
-                top_p = self.config["openai"]["top_p"],
+                temperature = temperature,
+                top_p = top_p,
                 n = 1,
                 stream = False,
                 stop = None,
-                max_tokens = self.config["openai"]["max_tokens"],
+                max_tokens = max_tokens,
                 presence_penalty = 0.5,
                 frequency_penalty = 0.5,
             )
@@ -512,6 +521,12 @@ class ChatModel:
         return True
     #}}}
 
+    #{{{ Set top_p
+    def set_top(self, top: float) -> bool:
+        self.config["openai"]["top_p"] = float(top)
+        return True
+    #}}}
+
 #}}}
 
 #{{{ ChatView
@@ -558,7 +573,8 @@ class ChatView:
         help_table.add_row("voice input","vi", "Switch to voice input")
         help_table.add_row("voice ouput","vo", "Switch on voice output")
         help_table.add_row("yank","y", "Copy last answer to clipboard")
-        help_table.add_row("temp \[temp]","p \[temp]", "Set the temperature to \[temp]")
+        help_table.add_row("temp \[temp]","t \[temp]", "Set the temperature to \[temp]")
+        help_table.add_row("top \[top_p]","tp \[top_p]", "Set the top_p to \[top_p]")
         help_table.add_row("clear","c", "Clear the screen")
         help_table.add_row("quit","q", "Quit")
         self.console.print(help_table)
@@ -662,14 +678,24 @@ class ChatController:
             self.chat_view.display_message("Copied to clipboard.", "success")
         #}}}
 
-        #{{{ Set the temperature
+        #{{{ Set temperature
         elif command.startswith("temp ") or command.startswith("t "):
             temp = command[2:]
             set_temp = self.chat_model.set_temperature(temp)
             if isinstance(set_temp, Exception):
                 self.chat_view.display_message("Error setting temperature: {}".format(set_temp), "error")
             else:
-                self.chat_view.display_message("Temperature set to {}.".format(temp), "success")
+                self.chat_view.display_message("temperature set to {}.".format(temp), "success")
+        #}}}
+
+        #{{{ Set top_p
+        elif command.startswith("top ") or command.startswith("tp "):
+            top= command[2:]
+            set_top = self.chat_model.set_top(top)
+            if isinstance(set_top, Exception):
+                self.chat_view.display_message("Error setting top_p: {}".format(set_top), "error")
+            else:
+                self.chat_view.display_message("top_p set to {}.".format(top), "success")
         #}}}
 
         #}}}
