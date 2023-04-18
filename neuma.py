@@ -122,7 +122,8 @@ class ChatModel:
             if mode_instructions:
                 # in mode_instructions, replace # with all the text after # in the user_prompt
                 hashtag = self.find_hashtag(self.user_prompt)
-                mode_instructions = mode_instructions.replace("#", hashtag)
+                if hashtag:
+                    mode_instructions = mode_instructions.replace("#", hashtag)
                 mode_instructions_message = {"role": "system", "content": mode_instructions}
                 self.add_to_conversation(mode_instructions_message)
                 messages.append(mode_instructions_message)
