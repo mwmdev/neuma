@@ -44,25 +44,25 @@ Press `h` followed by `Enter` to list all the commands.
 
 A conversaton is a series of prompts and answers.
 
-`conversations` or `c` : List all saved conversations
+`c` : List all saved conversations
 
-`conversation open [conversation]` or `c [conversation]` : Open conversation [conversation]
+`c [conversation]` : Open conversation [conversation]
 
-`conversation create` or `cc` : Create a new conversation
+`cc` : Create a new conversation
 
-`conversation save [conversation]` or `cs [conversation]` : Save the current conversation as [conversation]
+`cs [conversation]` : Save the current conversation as [conversation]
 
-`conversation trash [conversation] or `ct [conversation]` : Trash the conversation [conversation]
+`ct [conversation]` : Trash the conversation [conversation]
 
-`conversation yank` or `cy` : Copy the current conversation to the clipboard
+`cy` : Copy the current conversation to the clipboard
 
 ### Modes
 
 Modes define specific expected output behaviors. Custom modes are added by editing the `[modes]` section in the `config.toml` file.
 
-`modes` or `m` : List available modes
+`m` : List available modes
 
-`mode [mode]` or `m [mode]` : Switch to mode [mode]
+`m [mode]` : Switch to mode [mode]
 
 #### Available modes
 
@@ -75,37 +75,37 @@ Modes define specific expected output behaviors. Custom modes are added by editi
 
 Personae are profiles defined by a specific starting prompt and are defined in the `personae.toml` file.
 
-`personae` or `p` : List available personae
+`p` : List available personae
 
-`persona [persona]` or `p [persona]` : Switch to persona
+`p [persona]` : Switch to persona
 
 ### Voice output
 
 Voice output languages are defined in `config.toml`, here's a [list of supported voices](https://cloud.google.com/text-to-speech/docs/voices).
 
-`languages` or `l` : List available languages for voice output
+`l` : List available languages for voice output
 
-`language [language]` or `l [language]` : Set language to [language]
+`l [language]` : Set language to [language]
 
-`voice output` or `vo` : Toggle voice output
+`vo` : Toggle voice output
 
 ### Voice input
 
 Voice input can be used to transcribe voice to text.
 
-`voice input` or `vi` :  Switch to voice input
+`vi` :  Switch to voice input
 
 ### Other commands
 
-`yank` or `y` : Copy the last answer to the clipboard
+`y` : Copy the last answer to the clipboard
 
-`temp [temperature]` or `t [temperature]` : Sets the ChatGPT model [temperature](https://platform.openai.com/docs/api-reference/completions/create#completions/create-temperature).
+`t [temperature]` : Sets the ChatGPT model [temperature](https://platform.openai.com/docs/api-reference/completions/create#completions/create-temperature).
 
-`top [top_p]` or `tp [top_p]` : Sets the ChatGPT model [top_p](https://platform.openai.com/docs/api-reference/completions/create#completions/create-top_p).
+`tp [top_p]` : Sets the ChatGPT model [top_p](https://platform.openai.com/docs/api-reference/completions/create#completions/create-top_p).
 
-`clear` or `cls` : Clear the screen
+`cls` : Clear the screen
 
-`restart` or `r` : Restart the application
+`r` : Restart the application
 
-`quit` or `q` : Quit
+`q` : Quit
 
