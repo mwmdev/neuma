@@ -702,7 +702,7 @@ class ChatController:
             if isinstance(save, Exception):
                 self.chat_view.display_message("Error saving conversation: {}".format(save), "error")
             else:
-                self.chat_view.display_message("conversation saved.", "success")
+                self.chat_view.display_message("Conversation saved.", "success")
         #}}}
 
         #{{{ Open conversation
@@ -714,7 +714,7 @@ class ChatController:
             if isinstance(open_conversation, Exception):
                 self.chat_view.display_message("Error opening conversation: {}".format(open_conversation), "error")
             else:
-                self.chat_view.display_message("conversation opened.", "success")
+                self.chat_view.display_message("Conversation opened.", "success")
                 sleep(1)
                 self.chat_view.clear_screen()
                 self.chat_view.display_message(self.chat_model.get_conversation(), "answer")
@@ -727,7 +727,7 @@ class ChatController:
             if isinstance(trash_conversation, Exception):
                 self.chat_view.display_message("Error trashing conversation: {}".format(trash_conversation), "error")
             else:
-                self.chat_view.display_message("conversation trashed.", "success")
+                self.chat_view.display_message("Conversation trashed.", "success")
         #}}}
 
         #{{{ Copy conversation to clipboard
@@ -796,10 +796,11 @@ class ChatController:
         #{{{ Voice input
         elif command == "voice input" or command == "vi":
 
-            # toggle input mode
+            # Toggle input mode
             if self.input_mode == "text":
                 self.input_mode = "voice"
                 self.chat_view.display_message("Voice input mode enabled.", "success")
+
                 # Start spinner
                 with self.chat_view.console.status(""):
 
@@ -817,20 +818,28 @@ class ChatController:
                     # Display voice input
                     self.chat_view.display_message(self.voice_input, "prompt")
 
-                    # Start spinner
-                    with self.chat_view.console.status(""):
+                    log.log("Voice input: {}".format(self.voice_input))
 
-                        # Generate final prompt
-                        final_message = self.chat_model.generate_final_message(self.voice_input)
+                    # if voice input is "Exit."
+                    if self.voice_input == "Exit.":
+                        self.input_mode = "text"
+                        self.chat_view.display_message("Voice input mode disabled.", "success")
+                    else:
 
-                        # Generate response
-                        response = self.chat_model.generate_response(final_message)
+                        # Start spinner
+                        with self.chat_view.console.status(""):
 
-                    # Stop spinner
-                    self.chat_view.console.status("").stop()
+                            # Generate final prompt
+                            final_message = self.chat_model.generate_final_message(self.voice_input)
 
-                    # Display response
-                    self.chat_view.display_response(response)
+                            # Generate response
+                            response = self.chat_model.generate_response(final_message)
+
+                        # Stop spinner
+                        self.chat_view.console.status("").stop()
+
+                        # Display response
+                        self.chat_view.display_response(response)
 
             else:
                 self.input_mode = "text"
