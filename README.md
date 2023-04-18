@@ -64,12 +64,33 @@ Modes define specific expected output behaviors. Custom modes are added by editi
 
 `m [mode]` : Switch to mode [mode]
 
-#### Available modes
+#### Table
 
-- **table** : Displays the response in a table
-- **code** : Displays only code
-- **trans** : Displays translations
-- **char** : Impersonates any character, real or fiction
+Displays the response in a table. Works best when column header are defined explicitely and when temperature is low.
+
+Example:
+
+![table](https://user-images.githubusercontent.com/31964517/232883102-cb3d5e1c-6d95-4c52-9b77-f210a3479173.png)
+
+#### Code
+
+Displays only syntax highlighted code.
+
+Start with `#` followed by the language and the requested code.
+
+Example:
+
+![code](https://user-images.githubusercontent.com/31964517/232888337-9c880576-a190-427d-820a-5850408d3ca0.png)
+
+#### Trans
+
+Displays translations.
+
+Start with `#` followed by the language to translate into and the phrase to translate.
+
+Example:
+
+![trans](https://user-images.githubusercontent.com/31964517/232889279-5bac3e2b-1c3b-4cd6-add6-a4111210ab9f.png)
 
 ### Personae
 
