@@ -529,6 +529,12 @@ class ChatModel:
         return True
     #}}}
 
+    #{{{ Set max_tokens
+    def set_max_tokens(self, max_tokens: int) -> bool:
+        self.config["openai"]["max_tokens"] = int(max_tokens)
+        return True
+    #}}}
+
 #}}}
 
 #{{{ ChatView
@@ -556,29 +562,28 @@ class ChatView:
         """ Display help table with list of commands and aliases """
         help_table = Table()
         help_table.add_column("Command")
-        help_table.add_column("Alias")
         help_table.add_column("Description")
-        help_table.add_row("help","h", "Display this help section")
-        help_table.add_row("restart","r", "Restart application")
-        help_table.add_row("conversations","c", "List saved conversations")
-        help_table.add_row("conversation open \[conversation]","c \[conversation]", "Open conversation \[conversation]")
-        help_table.add_row("conversation create","cc", "Create a new conversation")
-        help_table.add_row("conversation save","cs", "Save the current conversation")
-        help_table.add_row("conversation trash \[conversation]","ct \[conversation]", "Trash conversation \[conversation]")
-        help_table.add_row("conversation yank","cy", "Copy current conversation to clipboard")
-        help_table.add_row("modes","m", "List available modes")
-        help_table.add_row("mode \[mode]" ,"m \[mode]", "Switch to mode \[mode]")
-        help_table.add_row("personae","p", "List available personae")
-        help_table.add_row("persona \[persona]","p \[persona]", "Switch to persona \[persona]")
-        help_table.add_row("languages","l", "List available languages")
-        help_table.add_row("language \[language]","l \[language]", "Set language to \[language]")
-        help_table.add_row("voice input","vi", "Switch to voice input")
-        help_table.add_row("voice ouput","vo", "Switch on voice output")
-        help_table.add_row("yank","y", "Copy last answer to clipboard")
-        help_table.add_row("temp \[temp]","t \[temp]", "Set the temperature to \[temp]")
-        help_table.add_row("top \[top_p]","tp \[top_p]", "Set the top_p to \[top_p]")
-        help_table.add_row("clear","c", "Clear the screen")
-        help_table.add_row("quit","q", "Quit")
+        help_table.add_row("h", "Display this help section")
+        help_table.add_row("r", "Restart application")
+        help_table.add_row("c", "List saved conversations")
+        help_table.add_row("c \[conversation]", "Open conversation \[conversation]")
+        help_table.add_row("cc", "Create a new conversation")
+        help_table.add_row("cs", "Save the current conversation")
+        help_table.add_row("ct \[conversation]", "Trash conversation \[conversation]")
+        help_table.add_row("cy", "Copy current conversation to clipboard")
+        help_table.add_row("m", "List available modes")
+        help_table.add_row("m \[mode]", "Switch to mode \[mode]")
+        help_table.add_row("p", "List available personae")
+        help_table.add_row("p \[persona]", "Switch to persona \[persona]")
+        help_table.add_row("l", "List available languages")
+        help_table.add_row("l \[language]", "Set language to \[language]")
+        help_table.add_row("vi", "Switch to voice input")
+        help_table.add_row("vo", "Switch on voice output")
+        help_table.add_row("y", "Copy last answer to clipboard")
+        help_table.add_row("t \[temp]", "Set the temperature to \[temp]")
+        help_table.add_row("tp \[top_p]", "Set the top_p to \[top_p]")
+        help_table.add_row("c", "Clear the screen")
+        help_table.add_row("q", "Quit")
         self.console.print(help_table)
 
     def display_response(self, response: str) -> None:
@@ -700,12 +705,22 @@ class ChatController:
                 self.chat_view.display_message("top_p set to {}.".format(top), "success")
         #}}}
 
+        #{{{ Set max tokens
+        elif command.startswith("maxtokens ") or command.startswith("mt "):
+            max_tokens = command[2:]
+            set_max_tokens = self.chat_model.set_max_tokens(max_tokens)
+            if isinstance(set_max_tokens, Exception):
+                self.chat_view.display_message("Error setting max tokens: {}".format(set_max_tokens), "error")
+            else:
+                self.chat_view.display_message("max_tokens set to {}.".format(max_tokens), "success")
+        #}}}
+
         #}}}
 
         #{{{ Conversations
 
         #{{{ List conversations
-        elif command == "conversations" or command == "c":
+        elif command == "c":
             conversations_list = self.chat_model.list_conversations()
             if isinstance(conversations_list, Exception):
                 self.chat_view.display_message("Error listing conversation: {}".format(conversations_list), "error")
@@ -716,7 +731,7 @@ class ChatController:
         #}}}
 
         #{{{ Create conversation
-        elif command == "conversation create" or command == "cc":
+        elif command == "cc":
             self.chat_model.new_conversation()
             self.chat_model.set_persona("")
             self.chat_view.mode = "normal"
@@ -724,8 +739,8 @@ class ChatController:
         #}}}
 
         #{{{ Save conversation
-        elif command.startswith("conversation save ") or command.startswith("cs "):
-            filename = command.split(" ")[1]
+        elif command.startswith("cs "):
+            filename = command.split(" ")[-1]
             save = self.chat_model.save_conversation(filename)
             if isinstance(save, Exception):
                 self.chat_view.display_message("Error saving conversation: {}".format(save), "error")
@@ -734,8 +749,8 @@ class ChatController:
         #}}}
 
         #{{{ Open conversation
-        elif command.startswith("conversation ") or command.startswith("c "):
-            filename = command.split(" ")[1]
+        elif command.startswith("c "):
+            filename = command.split(" ")[-1]
             if filename == "":
                 self.chat_view.display_message("Please specify a filename.", "error")
             open_conversation = self.chat_model.open_conversation(filename)
@@ -749,8 +764,8 @@ class ChatController:
         #}}}
 
         #{{{ Trash conversation
-        elif command.startswith("conversation trash ") or command.startswith("ct "):
-            filename = command.split(" ")[1]
+        elif command.startswith("ct "):
+            filename = command.split(" ")[-1]
             trash_conversation = self.chat_model.trash_conversation(filename)
             if isinstance(trash_conversation, Exception):
                 self.chat_view.display_message("Error trashing conversation: {}".format(trash_conversation), "error")
@@ -759,7 +774,7 @@ class ChatController:
         #}}}
 
         #{{{ Copy conversation to clipboard
-        elif command == "conversation yank" or command == "cy":
+        elif command == "cy":
             self.chat_model.copy_to_clipboard(self.chat_model.get_conversation())
             self.chat_view.display_message("Copied conversation to clipboard.", "success")
         #}}}
@@ -769,7 +784,7 @@ class ChatController:
         #{{{ Modes
 
         #{{{ List modes
-        elif command == "modes" or command == "m":
+        elif command == "m":
             modes = self.chat_model.list_modes()
             self.chat_view.display_message("Modes", "section")
             current_mode = self.chat_model.get_mode()
@@ -781,7 +796,7 @@ class ChatController:
         #}}}
 
         #{{{ Set mode
-        elif command.startswith("mode ") or command.startswith("m "):
+        elif command.startswith("m "):
             mode = command.split(" ")[1]
             try:
                 set_mode = self.chat_model.set_mode(mode)
@@ -795,7 +810,7 @@ class ChatController:
         #{{{ Personae
 
         #{{{ List Personae
-        elif command == "personae" or command == "p":
+        elif command == "p":
             personae = self.chat_model.list_personae()
             self.chat_view.display_message("Personae", "section")
             current_persona = self.chat_model.get_persona()
@@ -808,7 +823,7 @@ class ChatController:
         #}}}
 
         #{{{ Set persona
-        elif command.startswith("persona ") or command.startswith("p "):
+        elif command.startswith("p "):
             persona = command.split(" ")[1]
             set_persona = self.chat_model.set_persona(persona)
             if isinstance(set_persona, Exception):
@@ -822,7 +837,7 @@ class ChatController:
         #{{{ Languages / Voice
 
         #{{{ Voice input
-        elif command == "voice input" or command == "vi":
+        elif command == "vi":
 
             # Toggle input mode
             if self.input_mode == "text":
@@ -875,7 +890,7 @@ class ChatController:
         #}}}
 
         #{{{ Voice output
-        elif command == "voice output" or command == "vo":
+        elif command == "vo":
             self.chat_model.set_voice_output(not self.chat_model.get_voice_output())
             if self.chat_model.get_voice_output():
                 self.chat_view.display_message("Voice output enabled.", "success")
@@ -884,7 +899,7 @@ class ChatController:
         #}}}
 
         #{{{ List languages / voices
-        elif command == "languages" or command == "l":
+        elif command == "l":
             voices = self.chat_model.get_voices()
             self.chat_view.display_message("Languages", "section")
             current_voice = self.chat_model.get_voice()
@@ -896,7 +911,7 @@ class ChatController:
         #}}}
 
         #{{{ Set language / voice
-        elif command.startswith("language ") or command.startswith("l "):
+        elif command.startswith("l "):
             voice = command.split(" ")[1]
             set_voice = self.chat_model.set_voice(voice)
             if isinstance(set_voice, Exception):
