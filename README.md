@@ -81,7 +81,7 @@ Personae are profiles defined by a specific starting prompt and are defined in t
 
 ### Voice output
 
-Voice output languages are defined in `config.toml`, here's a [list of supported voices](https://cloud.google.com/text-to-speech/docs/voices)
+Voice output languages are defined in `config.toml`, here's a [list of supported voices](https://cloud.google.com/text-to-speech/docs/voices).
 
 `languages` or `l` : List available languages for voice output
 
@@ -100,6 +100,8 @@ Voice input can be used to transcribe voice to text.
 `yank` or `y` : Copy the last answer to the clipboard
 
 `temp [temperature]` or `t [temperature]` : Sets the ChatGPT model [temperature](https://platform.openai.com/docs/api-reference/completions/create#completions/create-temperature).
+
+`top [top_p]` or `tp [top_p]` : Sets the ChatGPT model [top_p](https://platform.openai.com/docs/api-reference/completions/create#completions/create-top_p).
 
 `clear` or `cls` : Clear the screen
 
