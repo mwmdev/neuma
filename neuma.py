@@ -121,7 +121,8 @@ class ChatModel:
             mode_instructions = self.config["modes"][self.mode]
             if mode_instructions:
                 # in mode_instructions, replace # with all the text after # in the user_prompt
-                mode_instructions = mode_instructions.replace("#", user_prompt[user_prompt.find("#")+1:])
+                hashtag = self.find_hashtag(self.user_prompt)
+                mode_instructions = mode_instructions.replace("#", hashtag)
                 mode_instructions_message = {"role": "system", "content": mode_instructions}
                 self.add_to_conversation(mode_instructions_message)
                 messages.append(mode_instructions_message)
@@ -394,6 +395,7 @@ class ChatModel:
         words = prompt.split(" ")
         for word in words:
             if word.startswith("#"):
+                log.log("Hashtag found : {}".format(word))
                 return word[1:]
         return False
 
