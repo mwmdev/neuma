@@ -1,0 +1,13 @@
+[[persona]]
+name = "default"
+temp = 0.5
+voice_name = "en-GB-Neural2-B"
+[[persona.messages]]
+role = "system"
+content = "You are a helpful assistant."
+[[persona.messages]]
+role = "user"
+content = "What is the capital of Mexico?"
+[[persona.messages]]
+role = "assistant"
+content = "The capital of Mexico is Mexico City"
