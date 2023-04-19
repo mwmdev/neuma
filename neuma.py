@@ -74,8 +74,8 @@ class ChatModel:
         self.mode = "normal" # Default mode
         self.persona = "" # Default persona
         self.voice_output = False # Default voice output
-        # self.voice = self.config["voices"]["english"] # Default voice
-        self.voice = ""
+        self.voice = self.config["voices"]["english"] # Default voice
+        # self.voice = ""
 
     #{{{ Get config
     def get_config(self) -> dict:
@@ -879,6 +879,7 @@ class ChatController:
 
                     # if voice input is "Exit."
                     if self.voice_input == "Exit.":
+                        log.log("You said Exit")
                         self.input_mode = "text"
                         self.chat_view.display_message("Voice input mode disabled.", "success")
                     else:
