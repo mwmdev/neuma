@@ -875,12 +875,10 @@ class ChatController:
                     # Display voice input
                     self.chat_view.display_message(self.voice_input, "prompt")
 
-                    log.log("Voice input: {}".format(self.voice_input))
-
                     # if voice input is "Exit."
                     if self.voice_input == "Exit.":
-                        log.log("You said Exit")
                         self.input_mode = "text"
+                        self.chat_model.set_voice_output(False)
                         self.chat_view.display_message("Voice input mode disabled.", "success")
                     else:
 
