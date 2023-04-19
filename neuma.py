@@ -920,9 +920,9 @@ class ChatController:
             current_voice = self.chat_model.get_voice()
             for voice in voices:
                 if self.chat_model.config["voices"][voice] == current_voice:
-                    self.chat_view.display_message(voice, "info")
+                    self.chat_view.display_message(voice+" <", "info")
                 else:
-                    self.chat_view.display_message(voice, "answer")
+                    self.chat_view.display_message(voice, "info")
         #}}}
 
         #{{{ Set language / voice
