@@ -1,14 +1,14 @@
 # Neuma
 
-Neuma is a ChatGPT interface for the command line written in python.
+Neuma is a minimalist ChatGPT interface for the command line.
 
 ## Features
-- Conversations management (create, save, copy, delete)
-- Modes (normal, table, code, translation)
-- Personae (profiles with custom starting prompt)
-- Voice input with transcription using whisper
-- Voice output using Google tts
-- and some other things..
+- **Conversations** management (create, save, copy, delete)
+- **Modes** (normal, table, code, translation)
+- **Personae** profiles with custom starting prompt
+- **Voice input** with transcription
+- **Voice output**
+- and a few other things...
 
 ## Installation
 
@@ -66,13 +66,13 @@ Modes define specific expected output behaviors. Custom modes are added by editi
 
 `m [mode]` : Switch to mode [mode]
 
-#### Table
+#### Table display
 
 `m table`
 
 Displays the response in a table. Works best when column header are defined explicitely and when temperature is low.
 
-#### Code
+#### Code generator
 
 `m code`
 
@@ -80,13 +80,19 @@ Displays only syntax highlighted code. Works best when temperature is low.
 
 Start with `#` followed by the language and the requested code.
 
-#### Trans
+#### Translator
 
 `m trans`
 
 Displays translations.
 
 Start with `#` followed by the language to translate into and the phrase to translate.
+
+#### Character impersonator
+
+`m char`
+
+Start with `#` followed by the name of the character you want to be impersonated.
 
 ### Personae
 
@@ -130,3 +136,7 @@ Saying "Exit" : Switch back to text input mode
 
 `q` : Quit
 
+
+## Color theme
+
+The colors of each type of text (prompt, answer, info msg, etc.) are defined in the `config.toml` file.
