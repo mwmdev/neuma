@@ -75,7 +75,6 @@ class ChatModel:
         self.persona = "" # Default persona
         self.voice_output = False # Default voice output
         self.voice = self.config["voices"]["english"] # Default voice
-        # self.voice = ""
 
     #{{{ Get config
     def get_config(self) -> dict:
@@ -560,9 +559,6 @@ class ChatView:
         self.console = None
         self.chat_controller = None
 
-    # def set_controller(self, chat_controller: object) -> None:
-    #     self.chat_controller = chat_controller
-
     def display_message(self, message: str, style: str) -> None:
         """ Display message in chat view """
         output = Padding(message, (0,2))
@@ -664,7 +660,7 @@ class ChatController:
 
         #{{{ Restart
         elif command == "restart" or command == "r":
-            self.chat_view.display_message("Restarting Neuma...", "success")
+            self.chat_view.display_message("Restarting...", "success")
             time.sleep(1)
             python = sys.executable
             os.execl(python, python, * sys.argv)
