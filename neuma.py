@@ -647,21 +647,8 @@ class ChatController:
 
         # Display the user input prompt
         while True:
-
-            if self.input_mode == "voice":
-                with self.chat_view.console.status(""):
-
-                    self.voice_input = self.chat_model.listen()
-                    self.console.print("> "+self.voice_input)
-                    final_message = self.chat_model.generate_final_message(self.voice_input)
-                    response = self.chat_model.generate_response(final_message)
-
-                self.chat_view.console.status("").stop()
-                self.chat_view.display_response(response)
-
-            if self.input_mode == "text":
-                user_input = self.chat_view.console.input("> ")
-                self.parse_command(user_input)
+            user_input = self.chat_view.console.input("> ")
+            self.parse_command(user_input)
     #}}}
 
     #{{{ Parse command
