@@ -110,7 +110,7 @@ class ChatModel:
         conversation = self.get_conversation()
         log.log("conversation: {}".format(conversation))
 
-        # if this is the first message, add the mode instructions and persona
+        # If this is the first message, add the mode instructions and persona
         if conversation == None:
             log.log("new conversation")
             messages = []
@@ -119,7 +119,7 @@ class ChatModel:
             log.log("Mode : {}".format(self.mode))
             mode_instructions = self.config["modes"][self.mode]
             if mode_instructions:
-                # in mode_instructions, replace # with all the text after # in the user_prompt
+                # replace # with all the text after # in the user_prompt
                 hashtag = self.find_hashtag(self.user_prompt)
                 log.log("hashtag: {}".format(hashtag))
                 if hashtag:
@@ -570,8 +570,8 @@ class ChatView:
 
     def display_help(self) -> None:
         """ Display help table with list of commands and aliases """
-        help_table = Table()
-        help_table.add_column("Command")
+        help_table = Table(box=box.SQUARE)
+        help_table.add_column("Command", max_width=20)
         help_table.add_column("Description")
         help_table.add_row("h", "Display this help section")
         help_table.add_row("r", "Restart application")
@@ -943,9 +943,6 @@ class ChatController:
                 # Error generating final prompt
                 except Exception as e:
                     self.chat_view.display_message("Error generating final message: {}".format(e), "error")
-            # Stop spinner
-            # self.chat_view.console.status("").stop()
-
     #}}}
 
     #{{{ def speak(self, text):
