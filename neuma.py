@@ -592,6 +592,7 @@ class ChatView:
         help_table.add_row("y", "Copy last answer to clipboard")
         help_table.add_row("t \[temp]", "Set the temperature to \[temp]")
         help_table.add_row("tp \[top_p]", "Set the top_p to \[top_p]")
+        help_table.add_row("mt \[max_tokens]", "Set the max_tokens to \[max_tokens]")
         help_table.add_row("c", "Clear the screen")
         help_table.add_row("q", "Quit")
         self.console.print(help_table)
@@ -654,12 +655,12 @@ class ChatController:
         #{{{ System
 
         #{{{ Exit
-        if command == "quit" or command == "q":
+        if command == "q":
             self.exit_app()
         #}}}
 
         #{{{ Restart
-        elif command == "restart" or command == "r":
+        elif command == "r":
             self.chat_view.display_message("Restarting...", "success")
             time.sleep(1)
             python = sys.executable
@@ -667,23 +668,23 @@ class ChatController:
         #}}}
 
         #{{{ Help
-        elif command == "help" or command == "h":
+        elif command == "h":
             self.chat_view.display_help()
         #}}}
 
         #{{{ Clear screen
-        elif command == "clear" or command == "cls":
+        elif command == "cls":
             self.chat_view.clear_screen()
         #}}}
 
         #{{{ Copy answer to clipboard
-        elif command == "yank" or command == "ya":
+        elif command == "ya":
             self.chat_model.copy_to_clipboard(self.chat_model.response)
             self.chat_view.display_message("Copied to clipboard.", "success")
         #}}}
 
         #{{{ Set temperature
-        elif command.startswith("temp ") or command.startswith("t "):
+        elif command.startswith("t "):
             temp = command[2:]
             set_temp = self.chat_model.set_temperature(temp)
             if isinstance(set_temp, Exception):
@@ -693,7 +694,7 @@ class ChatController:
         #}}}
 
         #{{{ Set top_p
-        elif command.startswith("top ") or command.startswith("tp "):
+        elif command.startswith("tp "):
             top= command[2:]
             set_top = self.chat_model.set_top(top)
             if isinstance(set_top, Exception):
@@ -703,7 +704,7 @@ class ChatController:
         #}}}
 
         #{{{ Set max tokens
-        elif command.startswith("maxtokens ") or command.startswith("mt "):
+        elif command.startswith("mt "):
             max_tokens = command[2:]
             set_max_tokens = self.chat_model.set_max_tokens(max_tokens)
             if isinstance(set_max_tokens, Exception):
