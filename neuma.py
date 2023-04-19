@@ -723,9 +723,11 @@ class ChatController:
             if isinstance(conversations_list, Exception):
                 self.chat_view.display_message("Error listing conversation: {}".format(conversations_list), "error")
             else:
-                self.chat_view.display_message("Conversations", "section")
-                for conversation in conversations_list:
-                    self.chat_view.display_message(conversation, "info")
+                # if there is at least one conversation
+                if len(conversations_list) > 0:
+                    self.chat_view.display_message("Conversations", "section")
+                    for conversation in conversations_list:
+                        self.chat_view.display_message(conversation, "info")
         #}}}
 
         #{{{ Create conversation
