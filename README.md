@@ -18,9 +18,7 @@ Install the required dependencies by running:
 
 ```pip install -r requirements.txt```
 
-Export your [ChatGPT API key](https://platform.openai.com/account/api-keys) as environment variable.
-
-Add this line to your preferre interactive shell rc file (ex: .bashrc)
+Export your [ChatGPT API key](https://platform.openai.com/account/api-keys) as environment variable by adding this line to your preferre interactive shell rc file:
 
 ```export OPENAI_API_KEY="[REPLACE WITH API KEY]"```
 
@@ -35,8 +33,6 @@ Finally, run the script with:
 ## Usage
 
 Use Neuma as an interactive chat, write your prompt and press enter. Wait for the answer, then continue the discussion.
-
-Special commands are available and are detailed below.
 
 Press `h` followed by `Enter` to list all the commands.
 
@@ -66,6 +62,8 @@ Modes define specific expected output behaviors. Custom modes are added by editi
 
 #### Table
 
+`m table`
+
 Displays the response in a table. Works best when column header are defined explicitely and when temperature is low.
 
 Example:
@@ -73,6 +71,8 @@ Example:
 ![table](https://user-images.githubusercontent.com/31964517/232883102-cb3d5e1c-6d95-4c52-9b77-f210a3479173.png)
 
 #### Code
+
+`m code`
 
 Displays only syntax highlighted code.
 
@@ -83,6 +83,8 @@ Example:
 ![code](https://user-images.githubusercontent.com/31964517/232888337-9c880576-a190-427d-820a-5850408d3ca0.png)
 
 #### Trans
+
+`m trans`
 
 Displays translations.
 
