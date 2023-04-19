@@ -72,7 +72,7 @@ class ChatModel:
     def __init__(self):
         self.config = self.get_config()
         self.mode = "normal" # Default mode
-        self.persona = "" # Default persona
+        self.persona = "default" # Default persona
         self.voice_output = False # Default voice output
         self.voice = self.config["voices"]["english"] # Default voice
 
