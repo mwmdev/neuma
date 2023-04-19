@@ -72,7 +72,7 @@ class ChatModel:
     def __init__(self):
         self.config = self.get_config()
         self.mode = "normal" # Default mode
-        self.persona = "default" # Default persona
+        self.persona = "" # Default persona
         self.voice_output = False # Default voice output
         self.voice = self.config["voices"]["english"] # Default voice
 
@@ -284,7 +284,7 @@ class ChatModel:
             persona_identity = ""
         return persona_identity
 
-    # Get persona language code
+    # OBS: Get persona language code
     def get_persona_language_code(self) -> str:
         if self.persona != "":
             personae = self.list_personae()
@@ -295,7 +295,7 @@ class ChatModel:
             language_code = ""
         return language_code
 
-    # Get persona voice name
+    # OBS: Get persona voice name
     def get_persona_voice_name(self) -> str:
         if self.persona != "":
             personae = self.list_personae()
