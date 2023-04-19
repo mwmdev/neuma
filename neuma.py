@@ -122,6 +122,7 @@ class ChatModel:
             if mode_instructions:
                 # in mode_instructions, replace # with all the text after # in the user_prompt
                 hashtag = self.find_hashtag(self.user_prompt)
+                log.log("hashtag: {}".format(hashtag))
                 if hashtag:
                     mode_instructions = mode_instructions.replace("#", hashtag)
                 mode_instructions_message = {"role": "system", "content": mode_instructions}
@@ -436,8 +437,20 @@ class ChatModel:
 
     #{{{ Transcribe
     def transcribe(self, audio_file: str) -> str:
+        model = "whisper-1"
+        prompt = ""
+        response_format = "json"
+        temperature = 0
+        language = self.voice[:2]
         try:
-            transcription = openai.Audio.transcribe("whisper-1", audio_file, "en-US")
+            transcription = openai.Audio.transcribe(
+                model = model,
+                file = audio_file,
+                prompt = prompt,
+                response_format = response_format,
+                temperature = temperature,
+                language = language
+            )
             transcription = transcription["text"]
             return transcription
 
