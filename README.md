@@ -2,7 +2,13 @@
 
 Neuma is a ChatGPT interface for the command line written in python.
 
-https://user-images.githubusercontent.com/31964517/232592981-fa89e5b0-f0b5-4688-afff-34a82b65d939.mp4
+## Features
+- Conversations management (create, save, copy, delete)
+- Modes (normal, table, code, translation)
+- Personae (profiles with custom starting prompt)
+- Voice input with transcription using whisper
+- Voice output using Google tts
+- and some other things..
 
 ## Installation
 
@@ -38,7 +44,7 @@ Press `h` followed by `Enter` to list all the commands.
 
 ### Conversations
 
-A conversaton is a series of prompts and answers.
+A conversaton is a series of prompts and answers. Conversations are stores as `.neu` text files in the data folders defined in `config.toml`.
 
 `c` : List all saved conversations
 
@@ -66,21 +72,13 @@ Modes define specific expected output behaviors. Custom modes are added by editi
 
 Displays the response in a table. Works best when column header are defined explicitely and when temperature is low.
 
-Example:
-
-![table](https://user-images.githubusercontent.com/31964517/232883102-cb3d5e1c-6d95-4c52-9b77-f210a3479173.png)
-
 #### Code
 
 `m code`
 
-Displays only syntax highlighted code.
+Displays only syntax highlighted code. Works best when temperature is low.
 
 Start with `#` followed by the language and the requested code.
-
-Example:
-
-![code](https://user-images.githubusercontent.com/31964517/232888337-9c880576-a190-427d-820a-5850408d3ca0.png)
 
 #### Trans
 
@@ -89,10 +87,6 @@ Example:
 Displays translations.
 
 Start with `#` followed by the language to translate into and the phrase to translate.
-
-Example:
-
-![trans](https://user-images.githubusercontent.com/31964517/232889279-5bac3e2b-1c3b-4cd6-add6-a4111210ab9f.png)
 
 ### Personae
 
@@ -118,6 +112,8 @@ Voice input can be used to transcribe voice to text.
 
 `vi` :  Switch to voice input
 
+Saying "Exit" : Switch back to text input mode
+
 ### Other commands
 
 `y` : Copy the last answer to the clipboard
@@ -125,6 +121,8 @@ Voice input can be used to transcribe voice to text.
 `t [temperature]` : Sets the ChatGPT model [temperature](https://platform.openai.com/docs/api-reference/completions/create#completions/create-temperature).
 
 `tp [top_p]` : Sets the ChatGPT model [top_p](https://platform.openai.com/docs/api-reference/completions/create#completions/create-top_p).
+
+`mt [max_tokens]` : Sets the ChatGPT model [max_tokens](https://platform.openai.com/docs/api-reference/completions/create#completions/create-max_tokens).
 
 `cls` : Clear the screen
 
