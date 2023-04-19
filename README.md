@@ -1,3 +1,5 @@
+<img align="right" src = "public/neuma.png"/>
+
 # Neuma
 
 Neuma is a minimalist ChatGPT interface for the command line.
