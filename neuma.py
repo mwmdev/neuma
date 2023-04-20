@@ -237,7 +237,7 @@ class ChatModel:
         #{{{ Code mode formatting
         elif self.mode == "code":
             language = self.find_hashtag(self.user_prompt)
-            syntax = Syntax(response, language, line_numbers=True, theme="gruvbox-dark", word_wrap=True)
+            syntax = Syntax(response, language, line_numbers=False, theme="gruvbox-dark", word_wrap=True)
             return syntax
         #}}}
 
@@ -420,8 +420,8 @@ class ChatModel:
 
         with speech_recognition.Microphone() as source:
             recognizer.adjust_for_ambient_noise(source)
-            # audio = recognizer.listen(source, phrase_time_limit=5)
-            audio = recognizer.listen(source)
+            #TODO: move settings to config
+            audio = recognizer.listen(source, timeout=5, phrase_time_limit=60)
 
             with open("tmp.wav", "wb") as f:
                 f.write(audio.get_wav_data())
