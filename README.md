@@ -1,15 +1,14 @@
-<img align="right" src = "public/neuma.png"/>
+<img align="right" width=200 title = "Ah0 M374KI45E" src = "public/neuma.png"/>
 
-# Neuma
+`neuma` is a minimalistic ChatGPT interface for the command line.
 
-Neuma is a minimalist ChatGPT interface for the command line.
+![render1682022113695](https://user-images.githubusercontent.com/31964517/233479690-81521ceb-2443-4a0e-ab1f-0b0b100a75db.gif)
 
 ## Features
 - **Conversations** management (create, save, copy, delete)
 - **Modes** (normal, table, code, translation)
 - **Personae** profiles with custom starting prompt
-- **Voice input** with transcription
-- **Voice output**
+- **Voice input / output**
 - and a few other things...
 
 ## Installation
@@ -34,6 +33,8 @@ For voice output you also need [Google Application Default Credentials](https://
 
 ```export GOOGLE_APPLICATION_CREDENTIALS="/path/to/crendentials.json"```
 
+Copy `config.toml` and `persona.toml` to `~/.config/neuma/`
+
 Finally, run the script with:
 
 ```python neuma.py```
@@ -46,7 +47,7 @@ Press `h` followed by `Enter` to list all the commands.
 
 ### Conversations
 
-A conversaton is a series of prompts and answers. Conversations are stores as `.neu` text files in the data folders defined in `config.toml`.
+A conversaton is a series of prompts and answers. Conversations are stored as `.neu` text files in the data folder defined in `config.toml`.
 
 `c` : List all saved conversations
 
@@ -72,15 +73,54 @@ Modes define specific expected output behaviors. Custom modes are added by editi
 
 `m table`
 
-Displays the response in a table. Works best when column header are defined explicitely and when temperature is low.
+Displays the response in a table. Works best when column headers are defined explicitly and when `temperature` is set to 0.
+
+```
+> Five Hugo prize winners by : Name, Book, Year
+  ┏━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━┓
+  ┃ Name               ┃ Book                                  ┃ Year ┃
+  ┡━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━┩
+  │ Isaac Asimov       │ Foundation’s Edge                     │ 1983 │
+  ├────────────────────┼───────────────────────────────────────┼──────┤
+  │ Orson Scott Card   │ Ender’s Game                          │ 1986 │
+  ├────────────────────┼───────────────────────────────────────┼──────┤
+  │ Ursula K. Le Guin  │ The Dispossessed: An Ambiguous Utopia │ 1975 │
+  ├────────────────────┼───────────────────────────────────────┼──────┤
+  │ Arthur C. Clarke   │ Rendezvous with Rama                  │ 1974 │
+  ├────────────────────┼───────────────────────────────────────┼──────┤
+  │ Robert A. Heinlein │ Double Star                           │ 1956 │
+  └────────────────────┴───────────────────────────────────────┴──────┘
+```
 
 #### Code generator
 
 `m code`
 
-Displays only syntax highlighted code. Works best when temperature is low.
+Displays only syntax highlighted code. Works best when `temperature` is set to 0.
 
 Start with `#` followed by the language and the requested code.
+
+```html
+> #html simple login form
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <title>Login Form</title>
+    </head>
+    <body>
+      <!-- Login form starts here -->
+      <form action="#" method="post">
+        <h2>Login</h2>
+        <label for="username">Username:</label><br>
+        <input type="text" id="username" name="username"><br><br>
+        <label for="password">Password:</label><br>
+        <input type="password" id="password" name="password"><br><br>
+        <input type="submit" value="Submit">
+      </form>
+      <!-- Login form ends here -->
+    </body>
+  </html>
+```
 
 #### Translator
 
@@ -90,11 +130,24 @@ Displays translations.
 
 Start with `#` followed by the language to translate into and the phrase to translate.
 
+```
+> #german What's the carbon footprint of nuclear energy ?
+  Wie groß ist der CO2-Fußabdruck von Kernenergie?
+```
+
 #### Character impersonator
 
 `m char`
 
 Start with `#` followed by the name of the character you want to be impersonated.
+
+```
+> #Bob_Marley Write the chorus to a new song.
+  "Rise up and stand tall,
+  Embrace the love that's all,
+  Let your heart blaze and brawl,
+  As we rock to the beat of this call."
+```
 
 ### Personae
 
@@ -120,17 +173,17 @@ Voice input can be used to transcribe voice to text.
 
 `vi` :  Switch to voice input
 
-Saying "Exit" : Switch back to text input mode
+Saying "Exit" will switch back to text input mode.
 
 ### Other commands
 
 `y` : Copy the last answer to the clipboard
 
-`t [temperature]` : Sets the ChatGPT model [temperature](https://platform.openai.com/docs/api-reference/completions/create#completions/create-temperature).
+`t [temperature]` : Set the ChatGPT model's [temperature](https://platform.openai.com/docs/api-reference/completions/create#completions/create-temperature).
 
-`tp [top_p]` : Sets the ChatGPT model [top_p](https://platform.openai.com/docs/api-reference/completions/create#completions/create-top_p).
+`tp [top_p]` : Set the ChatGPT model's [top_p](https://platform.openai.com/docs/api-reference/completions/create#completions/create-top_p).
 
-`mt [max_tokens]` : Sets the ChatGPT model [max_tokens](https://platform.openai.com/docs/api-reference/completions/create#completions/create-max_tokens).
+`mt [max_tokens]` : Set the ChatGPT model's [max_tokens](https://platform.openai.com/docs/api-reference/completions/create#completions/create-max_tokens).
 
 `cls` : Clear the screen
 
