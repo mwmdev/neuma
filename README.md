@@ -1,4 +1,4 @@
-<img align="right" style="width:20%;min-width: 120px;max-width: 250px; margin: 40px 20px;" title = "Ah0 M374KI45E" src = "public/neuma.png"/>
+<img align="right" style="width:20%;min-width: 150px;max-width: 250px; margin: 40px 20px;" title = "Ah0 M374KI45E" src = "public/neuma.png"/>
 
 `neuma` is a minimalistic ChatGPT interface for the command line.
 
