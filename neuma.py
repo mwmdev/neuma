@@ -63,7 +63,7 @@ class Logger:
     def close(self):
         self.file.close()
 
-log = Logger('/home/mike/scripts/neuma/neuma.log')
+log = Logger('./neuma.log')
 #}}}
 
 #{{{ ChatModel
@@ -89,7 +89,6 @@ class ChatModel:
                 api_key = os.getenv("OPENAI_API_KEY")
                 if api_key:
                     config["openai"]["api_key"] = api_key
-                    log.log("Config loaded")
                     return config
                 else:
                     raise ValueError("No API key found in environment variables.")
@@ -119,7 +118,7 @@ class ChatModel:
             log.log("Mode : {}".format(self.mode))
             mode_instructions = self.config["modes"][self.mode]
             if mode_instructions:
-                # replace # with all the text after # in the user_prompt
+                # Replace # with all the text after # in the user_prompt
                 hashtag = self.find_hashtag(self.user_prompt)
                 log.log("hashtag: {}".format(hashtag))
                 if hashtag:
@@ -139,6 +138,19 @@ class ChatModel:
                 log.log("Persona identity : {}".format(persona_identity_message))
         else:
             messages = conversation
+
+        # File content to insert
+        if "~{f:" in user_prompt and "}~" in user_prompt:
+            file_path = user_prompt.split("~{f:")[1].split("}~")[0]
+            log.log("file_path: {}".format(file_path))
+            if os.path.isfile(file_path):
+                with open(file_path, "r") as f:
+                    file_content = f.read()
+                    log.log("file_content: {}".format(file_content))
+                    user_prompt = user_prompt.replace("~{f:" + file_path + "}~", file_content)
+                    log.log("user_prompt: {}".format(user_prompt))
+            else:
+                log.log("File not found")
 
         # User input
         user_prompt = {"role": "user", "content": user_prompt}
