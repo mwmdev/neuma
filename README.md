@@ -8,6 +8,7 @@
 - **Conversations** management (create, save, copy, delete)
 - **Modes** (normal, table, code, translation)
 - **Personae** profiles with custom starting prompt
+- **File contents** accessible in prompts
 - **Voice input / output**
 - and a few other things...
 
@@ -174,6 +175,16 @@ Voice input can be used to transcribe voice to text.
 `vi` :  Switch to voice input
 
 Saying "Exit" will switch back to text input mode.
+
+### Special placeholders
+
+Use the `~{f:` `}~` notation to insert the content of a file into the prompt.
+
+```
+> Summarize the following article ~{f:article.txt}~
+```
+
+__Note__: This can highly increase the number of tokens, use with caution.
 
 ### Other commands
 
