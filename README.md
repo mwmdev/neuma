@@ -181,7 +181,13 @@ Saying "Exit" will switch back to text input mode.
 Use the `~{f:` `}~` notation to insert the content of a file into the prompt.
 
 ```
-> Summarize the following article ~{f:article.txt}~
+> Refactor the following code : ~{f:example.py}~
+```
+
+Use the `~{w:` `}~` notation to insert the content of a URL into the prompt.
+
+```
+> Summarize the following article : ~{w:https://www.freethink.com/health/lsd-mindmed-phase-2}~
 ```
 
 __Note__: This can highly increase the number of tokens, use with caution.
