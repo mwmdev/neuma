@@ -7,6 +7,9 @@ from time import sleep # Zzz
 import toml # For parsing settings
 import pyperclip # For copying to clipboard
 import re # For regex
+import requests # For accessing the web
+from bs4 import BeautifulSoup # For parsing HTML
+
 
 ## Speech recognition
 import threading
@@ -151,6 +154,27 @@ class ChatModel:
                     log.log("user_prompt: {}".format(user_prompt))
             else:
                 log.log("File not found")
+
+        # URL content to insert
+        if "~{w:" in user_prompt and "}~" in user_prompt:
+            url = user_prompt.split("~{w:")[1].split("}~")[0]
+            log.log("url: {}".format(url))
+            try:
+                response = requests.get(url)
+                if response.status_code == 200:
+                    log.log("response: {}".format(response))
+                    soup = BeautifulSoup(response.text, "html.parser")
+                    url_content = soup.get_text()
+                    # remove all newlines and extra spaces
+                    url_content = re.sub(r"\s+", " ", url_content)
+                    if len(url_content) > 3000:
+                        url_content = url_content[:3000]
+                    user_prompt = user_prompt.replace("~{w:" + url + "}~", url_content)
+                    log.log("user_prompt: {}".format(user_prompt))
+                else:
+                    log.log("Error getting URL content")
+            except Exception as e:
+                log.log("Error getting URL content: {}".format(e))
 
         # User input
         user_prompt = {"role": "user", "content": user_prompt}
