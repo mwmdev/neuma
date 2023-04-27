@@ -879,13 +879,14 @@ class ChatController:
             if self.input_mode == "text":
                 self.input_mode = "voice"
                 self.chat_view.display_message("Voice input mode enabled.", "success")
+                log.log("Voice input mode enabled.")
 
                 # Start spinner
                 with self.chat_view.console.status(""):
 
                     # Listen for voice input
-                    self.voice_input = self.chat_model.listen()
                     log.log("Listening for voice input...")
+                    self.voice_input = self.chat_model.listen()
 
                 # Stop spinner
                 self.chat_view.console.status("").stop()
@@ -904,6 +905,8 @@ class ChatController:
                         self.chat_view.display_message("Voice input mode disabled.", "success")
                     else:
 
+                        log.log("Processing voice input...")
+
                         # Start spinner
                         with self.chat_view.console.status(""):
 
@@ -915,6 +918,8 @@ class ChatController:
 
                         # Stop spinner
                         self.chat_view.console.status("").stop()
+
+                        self.input_mode = "text"
 
                         # Display response
                         self.chat_view.display_response(response)
