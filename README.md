@@ -16,7 +16,7 @@
 
 Clone this repository to your local machine using the following command:
 
-```bash git clone https://github.com/mwmdev/neuma.git```
+```git clone https://github.com/mwmdev/neuma.git```
 
 Navigate to the directory where the repository was cloned:
 
@@ -34,7 +34,9 @@ For voice output you also need [Google Application Default Credentials](https://
 
 ```export GOOGLE_APPLICATION_CREDENTIALS="/path/to/crendentials.json"```
 
-Copy `config.toml` and `persona.toml` to `~/.config/neuma/`
+Copy `config.toml` and `persona.toml` to `~/.config/neuma/` with:
+
+```cp config.toml persona.toml ~/.config/neuma/```
 
 Finally, run the script with:
 
