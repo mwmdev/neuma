@@ -296,6 +296,11 @@ class ChatModel:
             return syntax
         #}}}
 
+        #{{{ CSV mode formatting
+        elif self.mode == "csv":
+            separator = self.find_hashtag(self.user_prompt)
+            response = response.replace(",", separator)
+
         return response
 
     #}}}
