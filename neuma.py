@@ -461,7 +461,7 @@ class ChatModel:
         with speech_recognition.Microphone() as source:
             recognizer.adjust_for_ambient_noise(source)
             #TODO: move settings to config
-            audio = recognizer.listen(source, timeout=5, phrase_time_limit=60)
+            audio = recognizer.listen(source, timeout=10, phrase_time_limit=60)
 
             with open("tmp.wav", "wb") as f:
                 f.write(audio.get_wav_data())
@@ -476,6 +476,7 @@ class ChatModel:
 
     #{{{ Transcribe
     def transcribe(self, audio_file: str) -> str:
+        api_key = self.config["openai"]["api_key"]
         model = "whisper-1"
         prompt = ""
         response_format = "json"
@@ -483,6 +484,7 @@ class ChatModel:
         language = self.voice[:2]
         try:
             transcription = openai.Audio.transcribe(
+                api_key = api_key,
                 model = model,
                 file = audio_file,
                 prompt = prompt,
