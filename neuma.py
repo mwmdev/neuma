@@ -75,13 +75,14 @@ class ChatModel:
     def __init__(self):
         self.config = self.get_config()
         self.mode = "normal" # Default mode
-        self.persona = "" # Default persona
+        self.persona = "default" # Default persona
         self.voice_output = False # Default voice output
         self.voice = self.config["voices"]["english"] # Default voice
 
     #{{{ Get config
     def get_config(self) -> dict:
-        """ Get config from config.toml and API key from env """
+        """ Get config from config.toml and API keys from .env"""
+        # Get config
         if os.path.isfile(os.path.expanduser("~/.config/neuma/config.toml")):
             config_path = os.path.expanduser("~/.config/neuma/config.toml")
         else:
@@ -89,14 +90,34 @@ class ChatModel:
         try:
             with open(config_path, "r") as f:
                 config = toml.load(f)
-                api_key = os.getenv("OPENAI_API_KEY")
-                if api_key:
-                    config["openai"]["api_key"] = api_key
-                    return config
-                else:
-                    raise ValueError("No API key found in environment variables.")
         except Exception as e:
+            log.log("Error loading config: {}".format(e))
             return e
+
+        # Get API keys
+        if os.path.isfile(os.path.expanduser("~/.config/neuma/.env")):
+            env_path = os.path.expanduser("~/.config/neuma/.env")
+        else:
+            env_path = os.path.dirname(os.path.realpath(__file__)) + "/.env"
+        try:
+            with open(env_path, "r") as f:
+                env = toml.load(f)
+                # OpenAI
+                openai_api_key = env["OPENAI_API_KEY"]
+                if openai_api_key:
+                    config["openai"]["api_key"] = openai_api_key
+                    log.log("OpenAI API key loaded : {}".format(config["openai"]))
+                # Google app
+                google_app_api_key = env["GOOGLE_APPLICATION_CREDENTIALS"]
+                if google_app_api_key:
+                    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = google_app_api_key
+                else:
+                    raise ValueError("No API key found.")
+        except Exception as e:
+            log.log("Error loading API keys: {}".format(e))
+            return e
+
+        return config
     #}}}
 
     #{{{ Generate final prompt
@@ -109,53 +130,45 @@ class ChatModel:
         self.user_prompt = user_prompt
 
         # Conversation up to this point
-        conversation = self.get_conversation()
+        conversation = self.conversation
         log.log("conversation: {}".format(conversation))
 
-        # If this is the first message, add the mode instructions and persona
-        if conversation == None:
-            log.log("new conversation")
-            messages = []
+        #{{{ Persona identity
+        if not conversation:
+            log.log("Persona : {}".format(self.persona))
+            persona_identity = self.get_persona_identity()
+            for message in persona_identity:
+                conversation.append(message)
+        #}}}
 
-            # Mode instructions
-            log.log("Mode : {}".format(self.mode))
-            mode_instructions = self.config["modes"][self.mode]
-            if mode_instructions:
-                # Replace # with all the text after # in the user_prompt
-                hashtag = self.find_hashtag(self.user_prompt)
-                log.log("hashtag: {}".format(hashtag))
-                if hashtag:
-                    mode_instructions = mode_instructions.replace("#", hashtag)
-                mode_instructions_message = {"role": "system", "content": mode_instructions}
-                self.add_to_conversation(mode_instructions_message)
-                messages.append(mode_instructions_message)
-                log.log("Mode instructions : {}".format(mode_instructions_message))
+        #{{{ Mode instructions
+        log.log("Mode : {}".format(self.mode))
+        mode_instructions = self.config["modes"][self.mode]
+        if mode_instructions:
+            # Replace # with all the text after # in the user_prompt
+            hashtag = self.find_hashtag(self.user_prompt)
+            log.log("hashtag: {}".format(hashtag))
+            if hashtag:
+                mode_instructions = mode_instructions.replace("#", hashtag)
+            mode_instructions_message = {"role": "system", "content": mode_instructions}
+            conversation.append(mode_instructions_message)
+            log.log("Mode instructions : {}".format(mode_instructions_message))
+        #}}}
 
-            # Persona identity
-            if self.persona:
-                log.log("Persona : {}".format(self.persona))
-                persona_identity = self.get_persona_identity()
-                persona_identity_message = {"role": "system", "content": persona_identity}
-                self.add_to_conversation(persona_identity_message)
-                messages.append(persona_identity_message)
-                log.log("Persona identity : {}".format(persona_identity_message))
-        else:
-            messages = conversation
-
-        # File content to insert
+        #{{{ File content to insert
         if "~{f:" in user_prompt and "}~" in user_prompt:
             file_path = user_prompt.split("~{f:")[1].split("}~")[0]
             log.log("file_path: {}".format(file_path))
             if os.path.isfile(file_path):
                 with open(file_path, "r") as f:
                     file_content = f.read()
-                    log.log("file_content: {}".format(file_content))
                     user_prompt = user_prompt.replace("~{f:" + file_path + "}~", file_content)
                     log.log("user_prompt: {}".format(user_prompt))
             else:
                 log.log("File not found")
+        #}}}
 
-        # URL content to insert
+        #{{{ URL content to insert
         if "~{w:" in user_prompt and "}~" in user_prompt:
             url = user_prompt.split("~{w:")[1].split("}~")[0]
             log.log("url: {}".format(url))
@@ -175,24 +188,26 @@ class ChatModel:
                     log.log("Error getting URL content")
             except Exception as e:
                 log.log("Error getting URL content: {}".format(e))
+        #}}}
 
-        # User input
+        #{{{ User input
         user_prompt = {"role": "user", "content": user_prompt}
-        messages.append(user_prompt)
-        self.add_to_conversation(user_prompt)
+        conversation.append(user_prompt)
         log.log("User prompt : {}".format(user_prompt))
-        log.log("Final messages: {}".format(messages))
+        log.log("Final messages: {}".format(conversation))
+        #}}}
 
-        return messages
+        return conversation
 
     #}}}
 
     #{{{ Generate response from OpenAI API
     def generate_response(self, messages: list) -> str:
         """ Generate response from OpenAI API """
-
-        api_key = os.getenv("OPENAI_API_KEY")
+        api_key = self.config["openai"]["api_key"]
+        # log.log("api_key: {}".format(api_key))
         model = self.config["openai"]["model"]
+        log.log("model: {}".format(model))
         temperature = self.config["openai"]["temperature"]
         log.log("temperature: {}".format(temperature))
         top_p = self.config["openai"]["top_p"]
@@ -207,12 +222,12 @@ class ChatModel:
                 messages = messages,
                 temperature = temperature,
                 top_p = top_p,
-                n = 1,
-                stream = False,
-                stop = None,
-                max_tokens = max_tokens,
-                presence_penalty = 0.5,
-                frequency_penalty = 0.5,
+                # n = 1,
+                # stream = False,
+                # stop = None,
+                # max_tokens = max_tokens,
+                # presence_penalty = 0.5,
+                # frequency_penalty = 0.5,
             )
 
             # Get the first completion
@@ -221,7 +236,7 @@ class ChatModel:
             # Add to conversation
             response_message = {"role": "assistant", "content": self.response}
             log.log("Response : {}".format(response_message))
-            self.add_to_conversation(response_message)
+            self.conversation.append(response_message)
 
             # Process the response
             self.processed_response = self.process_response(self.response);
@@ -316,6 +331,7 @@ class ChatModel:
             for persona in personae["persona"]:
                 if persona["name"] == self.persona:
                     persona_identity = persona["messages"]
+                    log.log("Persona identity : {}".format(persona_identity))
         else:
             persona_identity = ""
         return persona_identity
@@ -349,18 +365,6 @@ class ChatModel:
     # Create new conversation
     def new_conversation(self) -> list:
         self.conversation = []
-
-    # Add message to conversation
-    def add_to_conversation(self, message: list) -> None:
-        self.conversation.append(message)
-
-    # Get conversation
-    def get_conversation(self) -> list:
-        if self.conversation:
-            return self.conversation
-        else:
-            new_conversation = self.new_conversation()
-            return new_conversation
 
     # Save conversation, write it to a file
     def save_conversation(self, filename: str) -> bool:
@@ -796,7 +800,7 @@ class ChatController:
                 self.chat_view.display_message("Conversation opened.", "success")
                 sleep(1)
                 self.chat_view.clear_screen()
-                self.chat_view.display_message(self.chat_model.get_conversation(), "answer")
+                self.chat_view.display_message(self.chat_model.conversation, "answer")
         #}}}
 
         #{{{ Trash conversation
@@ -811,7 +815,7 @@ class ChatController:
 
         #{{{ Copy conversation to clipboard
         elif command == "cy":
-            self.chat_model.copy_to_clipboard(self.chat_model.get_conversation())
+            self.chat_model.copy_to_clipboard(self.chat_model.conversation)
             self.chat_view.display_message("Copied conversation to clipboard.", "success")
         #}}}
 
@@ -866,6 +870,9 @@ class ChatController:
                 self.chat_view.display_message("Error setting persona: {}".format(set_persona), "error")
             else:
                 self.chat_view.display_message("Persona set to {}.".format(persona), "success")
+                self.chat_model.new_conversation()
+                sleep(1)
+                self.chat_view.clear_screen()
         #}}}
 
         #}}}
@@ -971,6 +978,8 @@ class ChatController:
                 # Generate final prompt
                 try:
                     final_message = self.chat_model.generate_final_message(command)
+                    # DEBUG: print final message
+                    # print(final_message)
 
                     # Generate response
                     try:
