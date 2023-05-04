@@ -455,6 +455,8 @@ class ChatModel:
     #{{{ Voice input
     def listen(self) -> str:
 
+        log.log("Listening...")
+
         # https://github.com/Uberi/speech_recognition
         recognizer = speech_recognition.Recognizer()
 
@@ -565,10 +567,13 @@ class ChatModel:
     #}}}
 
     #{{{ Copy to clipboard
-    def copy_to_clipboard(self, conversation: list) -> None:
+    def copy_to_clipboard(self, selection) -> None:
         output = ""
-        for message in conversation:
-            output += message['content'] + "\n\n"
+        if isinstance(selection, list):
+            for message in selection:
+                output += message['content'] + "\n\n"
+        else:
+            output = selection
         pyperclip.copy(output)
     #}}}
 
@@ -720,9 +725,9 @@ class ChatController:
         #}}}
 
         #{{{ Copy answer to clipboard
-        elif command == "ya":
+        elif command == "y":
             self.chat_model.copy_to_clipboard(self.chat_model.response)
-            self.chat_view.display_message("Copied to clipboard.", "success")
+            self.chat_view.display_message("Copied last answer to clipboard.", "success")
         #}}}
 
         #{{{ Set temperature
@@ -778,6 +783,8 @@ class ChatController:
             self.chat_model.set_persona("")
             self.chat_view.mode = "normal"
             self.chat_view.display_message("New conversation.", "success")
+            time.sleep(1)
+            self.chat_view.clear_screen()
         #}}}
 
         #{{{ Save conversation
