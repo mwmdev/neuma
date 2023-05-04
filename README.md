@@ -6,8 +6,6 @@
 
 ## Features
 
-**NOTE**: Under development, things might not always work as expected.
-
 - **Conversations** management (create, save, copy, delete)
 - **Modes** (normal, table, code, translation)
 - **Personae** profiles with custom starting prompt
