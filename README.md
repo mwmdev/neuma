@@ -7,7 +7,7 @@
 ## Features
 
 - **Conversations** management (create, save, copy, delete)
-- **Modes** (normal, table, code, translation)
+- **Modes** (normal, table, code, translate, impersonate, summarize, csv)
 - **Personae** profiles with custom starting prompt
 - **File contents** accessible in prompts
 - **Voice input / output**
