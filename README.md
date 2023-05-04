@@ -5,6 +5,9 @@
 ![render1682022113695](https://user-images.githubusercontent.com/31964517/233479690-81521ceb-2443-4a0e-ab1f-0b0b100a75db.gif)
 
 ## Features
+
+**NOTE**: Under development, things might not always work as expected.
+
 - **Conversations** management (create, save, copy, delete)
 - **Modes** (normal, table, code, translation)
 - **Personae** profiles with custom starting prompt
@@ -13,6 +16,8 @@
 - and a few other things...
 
 ## Installation
+
+Those instructions are for Linux, they may vary for other systems.
 
 Clone this repository to your local machine using the following command:
 
@@ -26,17 +31,16 @@ Install the required dependencies by running:
 
 ```pip install -r requirements.txt```
 
-Export your [ChatGPT API key](https://platform.openai.com/account/api-keys) as environment variable by adding this line to your preferre interactive shell rc file:
+Rename the `.env_example` to `.env` with:
 
-```export OPENAI_API_KEY="[REPLACE WITH API KEY]"```
+```mv .env_example .env```
 
-For voice output you also need [Google Application Default Credentials](https://cloud.google.com/docs/authentication/provide-credentials-adc) :
+Edit `.env` and add your  [ChatGPT API key](https://platform.openai.com/account/api-keys).
+For voice output you also need [Google Application Default Credentials](https://cloud.google.com/docs/authentication/provide-credentials-adc).
 
-```export GOOGLE_APPLICATION_CREDENTIALS="/path/to/crendentials.json"```
+Move all config files to your `.config/neuma/` folder with:
 
-Copy `config.toml` and `persona.toml` to `~/.config/neuma/` with:
-
-```cp config.toml persona.toml ~/.config/neuma/```
+```mkdir ~/.config/neuma && mv .env config.toml persona.toml ~/.config/neuma/```
 
 Finally, run the script with:
 
@@ -44,7 +48,7 @@ Finally, run the script with:
 
 ## Usage
 
-Use Neuma as an interactive chat, write your prompt and press enter. Wait for the answer, then continue the discussion.
+Use `neuma` as an interactive chat, write your prompt and press enter. Wait for the answer, then continue the discussion.
 
 Press `h` followed by `Enter` to list all the commands.
 
@@ -89,7 +93,7 @@ Displays the response in a table. Works best when column headers are defined exp
   ├────────────────────┼───────────────────────────────────────┼──────┤
   │ Ursula K. Le Guin  │ The Dispossessed: An Ambiguous Utopia │ 1975 │
   ├────────────────────┼───────────────────────────────────────┼──────┤
-  │ Arthur C. Clarke   │ Rendezvous with Rama                  │ 1974 │
+  │ Arthur C. Clarke   │ Rendezvous with Rama                 │ 1974 │
   ├────────────────────┼───────────────────────────────────────┼──────┤
   │ Robert A. Heinlein │ Double Star                           │ 1956 │
   └────────────────────┴───────────────────────────────────────┴──────┘
@@ -101,7 +105,7 @@ Displays the response in a table. Works best when column headers are defined exp
 
 Displays only syntax highlighted code. Works best when `temperature` is set to 0.
 
-Start with `#` followed by the language and the requested code.
+Start with `#` followed by the name of the language and the requested code.
 
 ```html
 > #html simple login form
@@ -131,7 +135,7 @@ Start with `#` followed by the language and the requested code.
 
 Displays translations.
 
-Start with `#` followed by the language to translate into and the phrase to translate.
+Start with `#` followed by the name of the language to translate into and the phrase to translate.
 
 ```
 > #german What's the carbon footprint of nuclear energy ?
@@ -150,6 +154,22 @@ Start with `#` followed by the name of the character you want to be impersonated
   Embrace the love that's all,
   Let your heart blaze and brawl,
   As we rock to the beat of this call."
+```
+
+#### CSV generator
+
+`m csv`
+
+Start with `#` followed by the separator you want to use.
+
+```
+> #; Five economics nobel prize winners by name, year, country and school of thought
+
+  1; Milton Friedman; 1976; USA; Monetarism;
+  2; Amartya Sen; 1998; India; Welfare economics;
+  3; Joseph Stiglitz; 2001; USA; Information economics;
+  4; Paul Krugman; 2008; USA; New trade theory;
+  5; Esther Duflo; 2019; France; Development economics
 ```
 
 ### Personae
