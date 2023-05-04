@@ -10,7 +10,6 @@ import re # For regex
 import requests # For accessing the web
 from bs4 import BeautifulSoup # For parsing HTML
 
-
 ## Speech recognition
 import threading
 import speech_recognition
@@ -256,6 +255,11 @@ class ChatModel:
 
         # Remove double line breaks
         response = response.replace("\n\n", "\n")
+
+        # Keep only what is between ``` and ```
+        if "```" in response:
+            response = response.split("```")[1]
+            response = response.split("```")[0]
 
         #}}}
 
