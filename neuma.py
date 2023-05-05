@@ -658,7 +658,7 @@ class ChatView:
         help_table.add_row("t \[temp]", "Set the temperature to \[temp]")
         help_table.add_row("tp \[top_p]", "Set the top_p to \[top_p]")
         help_table.add_row("mt \[max_tokens]", "Set the max_tokens to \[max_tokens]")
-        help_table.add_row("c", "Clear the screen")
+        help_table.add_row("cls", "Clear the screen")
         help_table.add_row("q", "Quit")
         self.console.print(help_table)
 
