@@ -9,6 +9,7 @@ import pyperclip # For copying to clipboard
 import re # For regex
 import requests # For accessing the web
 from bs4 import BeautifulSoup # For parsing HTML
+import readline
 
 ## Speech recognition
 import threading
