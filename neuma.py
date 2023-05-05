@@ -264,8 +264,15 @@ class ChatModel:
         #}}}
 
         #{{{ Table mode formatting
-        #TODO : Kill response if it starts with "As an AI model..."
         if self.mode == "table":
+
+            # Remove everything before the first |
+            if "|" in response:
+                response = response.split("|", 1)[1]
+                response = "|" + response
+
+            log.log("response: {}".format(response))
+
             lines = response.split("\n")
             lines = list(filter(None, lines))
 
@@ -273,7 +280,7 @@ class ChatModel:
             lines = [line for line in lines if "---" not in line]
 
             # Create table
-            table = Table(show_lines=True)
+            table = Table(show_lines = True)
 
             # Add columns
             for column in lines[0].split("|"):
@@ -302,6 +309,7 @@ class ChatModel:
             response = response.replace(",", separator)
 
         return response
+        #}}}
 
     #}}}
 
@@ -606,8 +614,6 @@ class ChatModel:
 
 #}}}
 
-#}}}
-
 #{{{ ChatView
 class ChatView:
 
@@ -684,9 +690,9 @@ class ChatController:
         self.input_mode = "text"
 
         self.console = Console(
-            theme=Theme(self.chat_model.config["theme"]),
-            record=True,
-            color_system="truecolor",
+            theme = Theme(self.chat_model.config["theme"]),
+            record = True,
+            color_system = "truecolor",
         )
         self.chat_view.console = self.console
 
