@@ -366,15 +366,15 @@ class ChatModel:
         return language_code
 
     # OBS: Get persona voice name
-    def get_persona_voice_name(self) -> str:
-        if self.persona != "":
-            personae = self.list_personae()
-            for persona in personae["persona"]:
-                if persona["name"] == self.persona:
-                    voice_name = persona["voice_name"]
-        else:
-            voice_name = ""
-        return voice_name
+    # def get_persona_voice_name(self) -> str:
+    #     if self.persona != "":
+    #         personae = self.list_personae()
+    #         for persona in personae["persona"]:
+    #             if persona["name"] == self.persona:
+    #                 voice_name = persona["voice_name"]
+    #     else:
+    #         voice_name = ""
+    #     return voice_name
 
     # }}}
 
@@ -472,25 +472,36 @@ class ChatModel:
 
     #{{{ Voice input
     def listen(self) -> str:
+        self.config = self.get_config()
+        self.input_device = self.config["audio"]["input_device"]
+        self.input_timeout = self.config["audio"]["input_timeout"]
+        log.log("input_timeout: {}".format(self.input_timeout))
+        self.input_limit = self.config["audio"]["input_limit"]
+        log.log("input_limit: {}".format(self.input_limit))
 
         log.log("Listening...")
 
         # https://github.com/Uberi/speech_recognition
         recognizer = speech_recognition.Recognizer()
 
-        with speech_recognition.Microphone() as source:
+        log.log("input_device: {}".format(self.input_device))
+        with speech_recognition.Microphone(device_index=self.input_device) as source:
             recognizer.adjust_for_ambient_noise(source)
             #TODO: move settings to config
-            audio = recognizer.listen(source, timeout=10, phrase_time_limit=60)
+            try:
+                audio = recognizer.listen(source, timeout=self.input_timeout, phrase_time_limit=self.input_limit)
 
-            with open("tmp.wav", "wb") as f:
-                f.write(audio.get_wav_data())
-            audio_file = open("tmp.wav", "rb")
+                with open("tmp.wav", "wb") as f:
+                    f.write(audio.get_wav_data())
+                audio_file = open("tmp.wav", "rb")
 
-            # Transcribe audio to text https://platform.openai.com/docs/guides/speech-to-text
-            transcription = self.transcribe(audio_file)
+                # Transcribe audio to text https://platform.openai.com/docs/guides/speech-to-text
+                transcription = self.transcribe(audio_file)
 
-            return transcription
+                return transcription
+
+            except speech_recognition.WaitTimeoutError as e:
+                return e
 
     #}}}
 
@@ -548,10 +559,10 @@ class ChatModel:
             synthesis_input = texttospeech.SynthesisInput(text=response)
 
             # if a persona is set
-            if self.persona != "":
-                voice_name = self.get_persona_voice_name()
-            else:
-                voice_name = self.get_voice()
+            # if self.persona != "":
+            #     voice_name = self.get_persona_voice_name()
+            # else:
+            voice_name = self.get_voice()
 
             language_code = voice_name[:5]
 
@@ -625,7 +636,7 @@ class ChatView:
         self.chat_controller = None
 
     def display_message(self, message: str, style: str) -> None:
-        """ Display message in chat view """
+        """ Display message """
         output = Padding(message, (0,2))
         self.console.print(output, style=style)
 
@@ -658,6 +669,7 @@ class ChatView:
         help_table.add_row("t \[temp]", "Set the temperature to \[temp]")
         help_table.add_row("tp \[top_p]", "Set the top_p to \[top_p]")
         help_table.add_row("mt \[max_tokens]", "Set the max_tokens to \[max_tokens]")
+        help_table.add_row("lm", "List available microphones")
         help_table.add_row("cls", "Clear the screen")
         help_table.add_row("q", "Quit")
         self.console.print(help_table)
@@ -700,17 +712,17 @@ class ChatController:
     #{{{ Startup
     def start(self):
         """ Start the chat """
-
         # Clear the screen
         self.chat_view.clear_screen()
 
         # Create a new conversation
         self.chat_model.new_conversation()
 
-        # Display the user input prompt
+        # Parse command
         while True:
             user_input = self.chat_view.console.input("> ")
             self.parse_command(user_input)
+
     #}}}
 
     #{{{ Parse command
@@ -994,6 +1006,12 @@ class ChatController:
                 self.chat_view.display_message("Language set to {}.".format(voice), "success")
         #}}}
 
+        #{{{ List microphones 
+        elif command.startswith("lm"):
+            for index, name in enumerate(speech_recognition.Microphone.list_microphone_names()):
+                print("Microphone with name \"{1}\" found for `Microphone(device_index={0})`".format(index, name))
+        #}}}
+
         #}}}
 
         # Normal prompt
@@ -1005,8 +1023,6 @@ class ChatController:
                 # Generate final prompt
                 try:
                     final_message = self.chat_model.generate_final_message(command)
-                    # DEBUG: print final message
-                    # print(final_message)
 
                     # Generate response
                     try:
@@ -1024,7 +1040,7 @@ class ChatController:
                     self.chat_view.display_message("Error generating final message: {}".format(e), "error")
     #}}}
 
-    #{{{ def speak(self, text):
+    #{{{ Speak
     def speak(self, text):
         """Speak the text."""
         self.chat_model.speak(text)
@@ -1055,6 +1071,8 @@ def main():
     # Start the controller
     chat_controller.start()
 
+
+# if __name__ in { "__main__", "__mp_main__" }:
 if __name__ == "__main__":
     main()
 #}}}
