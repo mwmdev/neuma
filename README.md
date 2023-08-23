@@ -75,7 +75,8 @@ Press `h` followed by `Enter` to list all the commands.
 │ t [temp]          │ Set the temperature to [temp]          │
 │ tp [top_p]        │ Set the top_p to [top_p]               │
 │ mt [max_tokens]   │ Set the max_tokens to [max_tokens]     │
-│ c                 │ Clear the screen                       │
+│ lm                │ List available microphones             │
+│ cls               │ Clear the screen                       │
 │ q                 │ Quit                                   │
 └───────────────────┴────────────────────────────────────────┘
 ```
@@ -121,7 +122,7 @@ Displays the response in a table. Works best when column headers are defined exp
   ├────────────────────┼───────────────────────────────────────┼──────┤
   │ Ursula K. Le Guin  │ The Dispossessed: An Ambiguous Utopia │ 1975 │
   ├────────────────────┼───────────────────────────────────────┼──────┤
-  │ Arthur C. Clarke   │ Rendezvous with Rama                 │ 1974 │
+  │ Arthur C. Clarke   │ Rendezvous with Rama                  │ 1974 │
   ├────────────────────┼───────────────────────────────────────┼──────┤
   │ Robert A. Heinlein │ Double Star                           │ 1956 │
   └────────────────────┴───────────────────────────────────────┴──────┘
