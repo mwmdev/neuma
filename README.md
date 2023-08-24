@@ -259,6 +259,47 @@ __Note__: This can highly increase the number of tokens, use with caution.
 
 `q` : Quit
 
+### Command line arguments
+
+By default `neuma` starts in  interactive mode, but you can also use command line arguments to return an answer right away, which can be useful for output redirection or piping.
+
+Available options :
+
+`-h` : Show the list of available options
+
+`-i INPUT` : Input prompt
+
+`-p PERSONAE` : Set the personae
+
+`-m MODE` : Set the mode
+
+`-t TEMP` : Set the temperature
+
+Examples :
+
+```
+> python neuma.py -t 1.2 -i "Write a haiku about the moon"`
+  Silver orb casts light,
+  Guiding night journeys below
+  Moon's tranquil, bright glow.
+```
+
+```
+> python neuma.py -t 0 -m "table" -i "Five US National parks by : name, size, climate"`
+  ┏━━┳━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━┓
+  ┃  ┃  National Park     ┃  Size (acres)  ┃  Climate                  ┃  ┃
+  ┡━━╇━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━┩
+  │  │  Yellowstone       │  2,219,791     │  Continental              │  │
+  ├──┼────────────────────┼────────────────┼───────────────────────────┼──┤
+  │  │  Yosemite          │  761,747       │  Mediterranean            │  │
+  ├──┼────────────────────┼────────────────┼───────────────────────────┼──┤
+  │  │  Grand Canyon      │  1,217,262     │  Arid                     │  │
+  ├──┼────────────────────┼────────────────┼───────────────────────────┼──┤
+  │  │  Glacier           │  1,013,125     │  Continental              │  │
+  ├──┼────────────────────┼────────────────┼───────────────────────────┼──┤
+  │  │  Rocky Mountain    │  265,807       │  Alpine                   │  │
+  └──┴────────────────────┴────────────────┴───────────────────────────┴──┘`
+```
 
 ## Color theme
 

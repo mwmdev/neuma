@@ -10,6 +10,7 @@ import re # For regex
 import requests # For accessing the web
 from bs4 import BeautifulSoup # For parsing HTML
 import readline
+import argparse # For parsing command line arguments
 
 ## Speech recognition
 import threading
@@ -713,7 +714,11 @@ class ChatController:
     def start(self):
         """ Start the chat """
         # Clear the screen
-        self.chat_view.clear_screen()
+        # self.chat_view.clear_screen()
+
+        # Parse command line arguments
+        if len(sys.argv) > 1:
+            self.parse_command_line_arguments(sys.argv[1:])
 
         # Create a new conversation
         self.chat_model.new_conversation()
@@ -724,6 +729,48 @@ class ChatController:
             self.parse_command(user_input)
 
     #}}}
+
+    #{{{ Parse command line arguments
+    def parse_command_line_arguments(self, arguments: list) -> None:
+        """ Parse command line arguments """
+
+        # get config
+        self.config = self.chat_model.config
+
+        # Create an ArgumentParser object
+        parser = argparse.ArgumentParser(description="neuma is a minimalistic ChatGPT interface for the command line.")
+
+        # Define arguments
+        parser.add_argument("-i", "--input", help="Input prompt")
+        parser.add_argument("-p", "--personae", help="Set personae")
+        parser.add_argument("-m", "--mode", help="Set mode")
+        parser.add_argument("-t", "--temp", help="Set temperature")
+
+        # Parse the command line arguments
+        args = parser.parse_args()
+
+        # Set personae
+        if args.personae:
+            self.chat_model.set_persona(args.personae)
+
+        # Set mode
+        if args.mode:
+            self.chat_model.set_mode(args.mode)
+
+        # Set temperature
+        if args.temp:
+            self.chat_model.set_temperature(args.temp)
+
+        # Prompt input
+        if args.input :
+            self.chat_model.new_conversation()
+            final_message = self.chat_model.generate_final_message(args.input)
+            response = self.chat_model.generate_response(final_message)
+            print(response)
+            exit()
+
+    #}}}
+                
 
     #{{{ Parse command
     def parse_command(self, command: str) -> None:
