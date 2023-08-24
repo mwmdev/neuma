@@ -655,7 +655,7 @@ class ChatView:
         help_table.add_row("c", "List saved conversations")
         help_table.add_row("c \[conversation]", "Open conversation \[conversation]")
         help_table.add_row("cc", "Create a new conversation")
-        help_table.add_row("cs", "Save the current conversation")
+        help_table.add_row("cs [conversation]", "Save the current conversation as [conversation]")
         help_table.add_row("ct \[conversation]", "Trash conversation \[conversation]")
         help_table.add_row("cy", "Copy current conversation to clipboard")
         help_table.add_row("m", "List available modes")
