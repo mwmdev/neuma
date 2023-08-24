@@ -52,33 +52,33 @@ Press `h` followed by `Enter` to list all the commands.
 
 ```
 > h
-┌───────────────────┬────────────────────────────────────────┐
-│ Command           │ Description                            │
-├───────────────────┼────────────────────────────────────────┤
-│ h                 │ Display this help section              │
-│ r                 │ Restart application                    │
-│ c                 │ List saved conversations               │
-│ c [conversation]  │ Open conversation [conversation]       │
-│ cc                │ Create a new conversation              │
-│ cs                │ Save the current conversation          │
-│ ct [conversation] │ Trash conversation [conversation]      │
-│ cy                │ Copy current conversation to clipboard │
-│ m                 │ List available modes                   │
-│ m [mode]          │ Switch to mode [mode]                  │
-│ p                 │ List available personae                │
-│ p [persona]       │ Switch to persona [persona]            │
-│ l                 │ List available languages               │
-│ l [language]      │ Set language to [language]             │
-│ vi                │ Switch to voice input                  │
-│ vo                │ Switch on voice output                 │
-│ y                 │ Copy last answer to clipboard          │
-│ t [temp]          │ Set the temperature to [temp]          │
-│ tp [top_p]        │ Set the top_p to [top_p]               │
-│ mt [max_tokens]   │ Set the max_tokens to [max_tokens]     │
-│ lm                │ List available microphones             │
-│ cls               │ Clear the screen                       │
-│ q                 │ Quit                                   │
-└───────────────────┴────────────────────────────────────────┘
+┌───────────────────┬─────────────────────────────────────────────────┐
+│ Command           │ Description                                     │
+├───────────────────┼─────────────────────────────────────────────────┤
+│ h                 │ Display this help section                       │
+│ r                 │ Restart application                             │
+│ c                 │ List saved conversations                        │
+│ c [conversation]  │ Open conversation [conversation]                │
+│ cc                │ Create a new conversation                       │
+│ cs [conversation] │ Save the current conversation as [conversation] │
+│ ct [conversation] │ Trash conversation [conversation]               │
+│ cy                │ Copy current conversation to clipboard          │
+│ m                 │ List available modes                            │
+│ m [mode]          │ Switch to mode [mode]                           │
+│ p                 │ List available personae                         │
+│ p [persona]       │ Switch to persona [persona]                     │
+│ l                 │ List available languages                        │
+│ l [language]      │ Set language to [language]                      │
+│ vi                │ Switch to voice input                           │
+│ vo                │ Switch on voice output                          │
+│ y                 │ Copy last answer to clipboard                   │
+│ t [temp]          │ Set the temperature to [temp]                   │
+│ tp [top_p]        │ Set the top_p to [top_p]                        │
+│ mt [max_tokens]   │ Set the max_tokens to [max_tokens]              │
+│ lm                │ List available microphones                      │
+│ cls               │ Clear the screen                                │
+│ q                 │ Quit                                            │
+└───────────────────┴─────────────────────────────────────────────────┘
 ```
 
 ### Conversations
