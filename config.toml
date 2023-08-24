@@ -21,7 +21,7 @@ data_folder = "./"
 
 [modes]
 normal = ""
-table = "A spreadsheet with values separated by | about this topic : "
+table = "Be very precise and concise, display only a table with values separated by | about this topic : "
 code = "I want you to act as a # developer. Output # for any requests and only #, nothing else. Add comments inside the # code. Write only # code that does the following : "
 trans = "Translate this into # : "
 char = "Imagine you are writing a novel about #. I want you to respond and answer like # using the tone, manner and vocabulary # would use. Do not write any explanations. Only answer like #. You must know all of the knowledge of #. My first question is : "
