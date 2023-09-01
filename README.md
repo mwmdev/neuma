@@ -209,6 +209,27 @@ Personae are profiles defined by a specific starting prompt and are defined in t
 
 `p [persona]` : Switch to persona
 
+The default persona has this starting prompt :
+
+```
+[[persona]]
+name = "default"
+temp = 0.5
+[[persona.messages]]
+role = "system"
+content = "You are a helpful assistant."
+[[persona.messages]]
+role = "user"
+content = "What is the capital of Mexico?"
+[[persona.messages]]
+role = "assistant"
+content = "The capital of Mexico is Mexico City"
+```
+
+To add new personae, copy paste the default persona and give it a new name, then edit the system prompt.
+
+The user and assistant messages are optional, but help with accuracy. You can add as many user/assistant messages as you like (increases token count).
+
 ### Voice output
 
 Voice output languages are defined in `config.toml`, here's a [list of supported voices](https://cloud.google.com/text-to-speech/docs/voices).
@@ -303,4 +324,4 @@ Examples :
 
 ## Color theme
 
-The colors of each type of text (prompt, answer, info msg, etc.) are defined in the `config.toml` file.
+The colors of each type of text (prompt, answer, info msg, etc.) are defined in the `config.toml` file (default is [gruvbox](https://github.com/morhetz/gruvbox)).
