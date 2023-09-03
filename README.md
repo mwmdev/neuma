@@ -9,7 +9,7 @@
 - **Conversations** management (create, save, copy, delete)
 - **Modes** (normal, table, code, translate, impersonate, summarize, csv)
 - **Personae** profiles with custom starting prompt
-- **File contents** and **Web pages** accessible in prompts
+- **Embeddings** management (embed documents, create vector dbs)
 - **Voice input / output**
 - and a few other things...
 
@@ -271,7 +271,21 @@ Use the `~{w:` `}~` notation to insert the content of a URL into the prompt.
 > Summarize the following article : ~{w:https://www.freethink.com/health/lsd-mindmed-phase-2}~
 ```
 
-__Note__: This can highly increase the number of tokens, use with caution.
+__Note__: This can highly increase the number of tokens, use with caution. For large content use embeddings instead.
+
+### Embeddings
+
+Embeddings allow you to embed documents into the discussion to serve as context for the answers.
+
+Supported file formats: csv, doc, docx, epub, html, md, odt, pdf, ppt, pptx, txt
+
+`d` : List all available vector dbs
+
+`d [db]` : Create or switch to [db] vector db
+
+`dt [db]` : Trash [db] vector db (will delete all files and folders related to this vector db)
+
+`e [/path/to/file]` : Embed [/path/to/file/] and store in current vector db
 
 ### Other commands
 

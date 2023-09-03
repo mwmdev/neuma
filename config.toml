@@ -1,5 +1,6 @@
 [openai]
 model = "gpt-3.5-turbo"
+# model = "gpt-4-0613"
 temperature = 0.3
 top_p = 1
 max_tokens = 2048
@@ -27,6 +28,13 @@ trans = "Translate this into # : "
 char = "Imagine you are writing a novel about #. I want you to respond and answer like # using the tone, manner and vocabulary # would use. Do not write any explanations. Only answer like #. You must know all of the knowledge of #. My first question is : "
 sum = "Summarize this and display it in a list of bullet points : "
 csv = "Print a CSV list of : "
+
+[embeddings]
+model = "text-embedding-ada-002"
+
+[vector_db]
+persist_folder = "./db"
+default = "docs"
 
 [theme]
 section = "#d3869b" # pink
