@@ -71,6 +71,10 @@ Press `h` followed by `Enter` to list all the commands.
 │ l [language]      │ Set language to [language]                      │
 │ vi                │ Switch to voice input                           │
 │ vo                │ Switch on voice output                          │
+│ d                 │ List available vector dbs                       │
+│ d [db]            │ Create or switch to vector db [db]              │
+│ dt [db]           │ Trash vector db [db]                            │
+│ e [/path/to/file] │ Embed [/path/to/file] document into current db  │
 │ y                 │ Copy last answer to clipboard                   │
 │ t [temp]          │ Set the temperature to [temp]                   │
 │ tp [top_p]        │ Set the top_p to [top_p]                        │
