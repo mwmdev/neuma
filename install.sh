@@ -64,4 +64,4 @@ mv .env config.toml personae.toml ~/.config/neuma/
 echo "- Installation complete."
 cd ./neuma
 source ./env/bin/activate
-echo "You can now Run 'python neuma.py' to start the program."
+echo "You can now Run 'python ./neuma/neuma.py' to start the program."
