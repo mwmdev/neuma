@@ -76,8 +76,11 @@ Press `h` followed by `Enter` to list all the commands.
 │ dt [db]           │ Trash vector db [db]                            │
 │ e [/path/to/file] │ Embed [/path/to/file] document into current db  │
 │ y                 │ Copy last answer to clipboard                   │
+│ t                 │ Get the current temperature                     │
 │ t [temp]          │ Set the temperature to [temp]                   │
+│ tp                │ Get the current top_p value                     │
 │ tp [top_p]        │ Set the top_p to [top_p]                        │
+│ mt                │ Get the current max_tokens value                │
 │ mt [max_tokens]   │ Set the max_tokens to [max_tokens]              │
 │ lm                │ List available microphones                      │
 │ cls               │ Clear the screen                                │
