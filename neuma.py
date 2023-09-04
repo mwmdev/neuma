@@ -51,7 +51,6 @@ from langchain.memory import ConversationBufferMemory
 from langchain.chat_models import ChatOpenAI
 
 # LLM
-# from langchain import OpenAI
 from langchain.chains import ConversationalRetrievalChain
 from langchain.callbacks import get_openai_callback
 
@@ -168,7 +167,7 @@ class ChatModel:
 
         # Conversation up to this point
         conversation = self.conversation
-        log.log("conversation: {}".format(conversation))
+        # log.log("conversation: {}".format(conversation))
 
         # {{{ Persona identity
         if not conversation:
@@ -250,16 +249,16 @@ class ChatModel:
         # log.log("api_key: {}".format(api_key))
 
         model = self.config["openai"]["model"]
-        log.log("model: {}".format(model))
+        # log.log("model: {}".format(model))
 
         temperature = self.config["openai"]["temperature"]
-        log.log("temperature: {}".format(temperature))
+        # log.log("temperature: {}".format(temperature))
 
         top_p = self.config["openai"]["top_p"]
-        log.log("top_p: {}".format(top_p))
+        # log.log("top_p: {}".format(top_p))
 
         max_tokens = self.config["openai"]["max_tokens"]
-        log.log("max_tokens: {}".format(max_tokens))
+        # log.log("max_tokens: {}".format(max_tokens))
 
         persist_folder = self.config["vector_db"]["persist_folder"]
 
@@ -267,7 +266,7 @@ class ChatModel:
         full_path = os.path.join(persist_folder, vector_db_name)
 
         # Log messages :
-        log.log("messages: {}".format(messages))
+        # log.log("messages: {}".format(messages))
 
         # If variable "chat_history" does not exist, create it
         if "chat_history" not in globals():
@@ -492,6 +491,8 @@ class ChatModel:
     # Save conversation, write it to a file
     def save_conversation(self, filename: str) -> bool:
         data_folder = self.config["conversations"]["data_folder"]
+        if not os.path.exists(data_folder):
+            os.makedirs(data_folder)
         try:
             with open(data_folder + filename + ".neu", "w") as f:
                 output = ""
@@ -593,7 +594,6 @@ class ChatModel:
         log.log("input_device: {}".format(self.input_device))
         with speech_recognition.Microphone(device_index=self.input_device) as source:
             recognizer.adjust_for_ambient_noise(source)
-            # TODO: move settings to config
             try:
                 audio = recognizer.listen(
                     source,
