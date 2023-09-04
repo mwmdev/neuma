@@ -30,7 +30,7 @@ virtualenv -q -p python3 env
 
 # Activate the virtual environment
 echo "- Activating the virtual environment"
-source env/bin/activate
+source ./env/bin/activate
 
 # Install required dependencies
 echo "- Installing required dependencies"
@@ -42,7 +42,6 @@ mv .env_example .env
 # Prompt for OpenAI API Key
 read -p "- Enter your OpenAI API Key (Press Enter to skip): " openai_api_key
 if [ -z "$openai_api_key" ]
-then
   echo "- Skipping OpenAI API Key, you can enter it later in ~/.config/neuma/.env"
 else
   echo "OPENAI_API_KEY=$openai_api_key" >> .env
@@ -51,7 +50,6 @@ fi
 # Prompt for Google Application Credentials
 read -p "- Enter the path to your Google Application Credentials .json file (Press Enter to skip): " google_application_credentials
 if [ -z "$google_application_credentials" ]
-then
   echo "- Skipping Google Application Credentials, you can enter it manually in ~/.config/neuma/.env"
 else
   echo "GOOGLE_APPLICATION_CREDENTIALS=$google_application_credentials" >> .env
