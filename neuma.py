@@ -44,6 +44,9 @@ from langchain.vectorstores import Chroma
 # Embeddings
 from langchain.embeddings import OpenAIEmbeddings
 
+# Memory
+from langchain.memory import ConversationBufferMemory
+
 # Chat models
 from langchain.chat_models import ChatOpenAI
 
@@ -241,8 +244,7 @@ class ChatModel:
     def generate_response(self, messages: list) -> str | Exception:
         """Generate response from OpenAI API"""
 
-        # get last message as prompt
-        prompt = messages[-1]["content"]
+        prompt = json.dumps(messages)
 
         api_key = self.config["openai"]["api_key"]
         # log.log("api_key: {}".format(api_key))
@@ -264,6 +266,13 @@ class ChatModel:
         vector_db_name = self.vector_db
         full_path = os.path.join(persist_folder, vector_db_name)
 
+        # Log messages :
+        log.log("messages: {}".format(messages))
+
+        # If variable "chat_history" does not exist, create it
+        if "chat_history" not in globals():
+            chat_history = []
+
         # LLM
         try:
             llm = ChatOpenAI(
@@ -273,7 +282,7 @@ class ChatModel:
                 max_tokens=max_tokens,
                 # top_p=top_p,
             )
-            log.log("llm: {}".format(llm))
+            # log.log("llm: {}".format(llm))
         except Exception as e:
             return e
 
@@ -282,7 +291,7 @@ class ChatModel:
             embeddings = OpenAIEmbeddings(
                 openai_api_key=os.environ["OPENAI_API_KEY"],
             )
-            log.log("embeddings: {}".format(embeddings))
+            # log.log("embeddings: {}".format(embeddings))
         except Exception as e:
             return e
 
@@ -293,7 +302,7 @@ class ChatModel:
                 persist_directory=full_path,
                 embedding_function=embeddings,
             )
-            log.log("vector_db: {}".format(vector_db))
+            # log.log("vector_db: {}".format(vector_db))
         except Exception as e:
             return e
 
@@ -304,13 +313,12 @@ class ChatModel:
                 search_kwargs={"k": 2},
             )
             llm = ChatOpenAI(model_name=model)
-            qa = ConversationalRetrievalChain.from_llm(
-                llm=llm,
-                retriever=retriever,
-            )
-            chat_history = []
+
+            qa = ConversationalRetrievalChain.from_llm(llm=llm, retriever=retriever)
+
             with get_openai_callback() as callback:
                 response = qa({"question": prompt, "chat_history": chat_history})
+                # response = chain({"question": prompt, "chat_history": chat_history})
                 response_data = {
                     "id": "",
                     "created": "",
@@ -327,8 +335,9 @@ class ChatModel:
 
         # Add to conversation
         response_message = {"role": "assistant", "content": response_data["message"]}
-        log.log("Response : {}".format(response_message))
         self.conversation.append(response_message)
+
+        chat_history.append(response_data["message"])
 
         # Process the response
         self.processed_response = self.process_response(response_data["message"])
