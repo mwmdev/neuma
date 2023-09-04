@@ -1,4 +1,6 @@
 beautifulsoup4==4.12.2
+chroma-hnswlib==0.7.2
+chromadb==0.4.8
 google==3.0.0
 google-api-core==2.11.0
 google-api-python-client==2.85.0
