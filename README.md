@@ -293,11 +293,11 @@ Supported file formats: csv, doc, docx, epub, html, md, odt, pdf, ppt, pptx, txt
 
 So, to chat with a document you can do the following :
 
-- 1. Create a persona with a profile that restricts answers to the context, like "You will only answer a question if it can be determined from the context provided."
-- 2. Switch to that persona
-- 3. Create a vector db
-- 4. Embed a document
-- 5. Ask a question about it
+- Create a persona with a profile that restricts answers to the context, like "You will only answer a question if it can be determined from the context provided."
+- Switch to that persona
+- Create a vector db
+- Embed a document
+- Ask a question about it
 
 ### Other commands
 
