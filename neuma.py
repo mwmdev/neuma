@@ -109,7 +109,7 @@ class ChatModel:
     def __init__(self):
         self.config = self.get_config()
         self.mode = "normal"  # Default mode
-        self.persona = "default"  # Default persona
+        self.persona = self.set_persona("default")
         self.voice_output = False  # Default voice output
         self.voice = self.config["voices"]["english"]  # Default voice
         self.vector_db = self.config["vector_db"]["default"]  # Default vector db
@@ -419,7 +419,7 @@ class ChatModel:
     # {{{ Personae
 
     # List personae
-    def list_personae(self) -> str | list:
+    def list_personae(self) -> str | dict | Exception:
         """List the available personae from the personae file"""
         if os.path.isfile(os.path.expanduser("~/.config/neuma/personae.toml")):
             personae_path = os.path.expanduser("~/.config/neuma/personae.toml")
@@ -438,9 +438,12 @@ class ChatModel:
         return personae
 
     # Set persona
-    def set_persona(self, persona: str) -> str:
-        # TODO check if persona exists before setting
+    def set_persona(self, persona: str) -> bool | Exception:
+        # TODO: Check if persona exists before setting
         self.persona = persona
+        temperature = self.get_persona_temperature()
+        self.set_temperature(temperature)
+        return True
 
     # Get persona
     def get_persona(self) -> str:
@@ -456,18 +459,29 @@ class ChatModel:
                     log.log("Persona identity : {}".format(persona_identity))
         else:
             persona_identity = ""
-        return persona_identity
+        return persona_identityidentity
 
-    # OBS: Get persona language code
-    def get_persona_language_code(self) -> str:
+    # Get persona temperature
+    def get_persona_temperature(self) -> float:
         if self.persona != "":
             personae = self.list_personae()
             for persona in personae["persona"]:
                 if persona["name"] == self.persona:
-                    language_code = persona["language_code"]
+                    temperature = persona["temp"]
         else:
-            language_code = ""
-        return language_code
+            temperature = ""
+        return temperature
+
+    # OBS: Get persona language code
+    # def get_persona_language_code(self) -> str:
+    #     if self.persona != "":
+    #         personae = self.list_personae()
+    #         for persona in personae["persona"]:
+    #             if persona["name"] == self.persona:
+    #                 language_code = persona["language_code"]
+    #     else:
+    #         language_code = ""
+    #     return language_code
 
     # OBS: Get persona voice name
     # def get_persona_voice_name(self) -> str:
@@ -1090,10 +1104,16 @@ class ChatController:
 
         # {{{ Copy answer to clipboard
         elif command == "y":
-            self.chat_model.copy_to_clipboard(self.chat_model.response)
-            self.chat_view.display_message(
-                "Copied last answer to clipboard.", "success"
-            )
+            # log conversation
+            if len(self.chat_model.conversation) > 0:
+                last_message = self.chat_model.conversation[-1].get("content")
+                log.log("Last message: {}".format(last_message))
+                self.chat_model.copy_to_clipboard(last_message)
+                self.chat_view.display_message(
+                    "Copied last answer to clipboard.", "success"
+                )
+            else:
+                self.chat_view.display_message("Nothing to copy to clipboard.", "error")
         # }}}
 
         # {{{ Get temperature
