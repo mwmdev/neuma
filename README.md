@@ -280,7 +280,7 @@ __Note__: This can highly increase the number of tokens, use with caution. For l
 ### Embeddings
 
 Embeddings allow you to embed documents into the discussion to serve as context for the answers.
-
+ 
 Supported file formats: csv, doc, docx, epub, html, md, odt, pdf, ppt, pptx, txt
 
 `d` : List all available vector dbs
@@ -290,6 +290,14 @@ Supported file formats: csv, doc, docx, epub, html, md, odt, pdf, ppt, pptx, txt
 `dt [db]` : Trash [db] vector db (will delete all files and folders related to this vector db)
 
 `e [/path/to/file]` : Embed [/path/to/file/] and store in current vector db
+
+So, to chat with a document you can do the following :
+
+- 1. Create a persona with a profile that restricts answers to the context, like "You will only answer a question if it can be determined from the context provided."
+- 2. Switch to that persona
+- 3. Create a vector db
+- 4. Embed a document
+- 5. Ask a question about it
 
 ### Other commands
 
