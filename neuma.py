@@ -950,8 +950,11 @@ class ChatView:
         help_table.add_row("d \[db]", "Create or switch to vector db \[db]")
         help_table.add_row("dt \[db]", "Trash vector db \[db]")
         help_table.add_row("y", "Copy last answer to clipboard")
+        help_table.add_row("t", "Get the current temperature value")
         help_table.add_row("t \[temp]", "Set the temperature to \[temp]")
+        help_table.add_row("tp", "Get the current top_p value")
         help_table.add_row("tp \[top_p]", "Set the top_p to \[top_p]")
+        help_table.add_row("mt", "Get the current max_tokens value")
         help_table.add_row("mt \[max_tokens]", "Set the max_tokens to \[max_tokens]")
         help_table.add_row("lm", "List available microphones")
         help_table.add_row("cls", "Clear the screen")
@@ -1093,6 +1096,16 @@ class ChatController:
             )
         # }}}
 
+        # {{{ Get temperature
+        elif command == "t":
+            self.chat_view.display_message(
+                "Temperature: {}".format(
+                    self.chat_model.config["openai"]["temperature"]
+                ),
+                "info",
+            )
+        # }}}
+
         # {{{ Set temperature
         elif command.startswith("t "):
             temp = command[2:]
@@ -1107,6 +1120,13 @@ class ChatController:
                 )
         # }}}
 
+        # {{{ Get top_p
+        elif command == "tp":
+            self.chat_view.display_message(
+                "top_p: {}".format(self.chat_model.config["openai"]["top_p"]), "info"
+            )
+        # }}}
+
         # {{{ Set top_p
         elif command.startswith("tp "):
             top = command[2:]
@@ -1119,6 +1139,14 @@ class ChatController:
                 self.chat_view.display_message(
                     "top_p set to {}.".format(top), "success"
                 )
+        # }}}
+
+        # {{{ Get max tokens
+        elif command == "mt":
+            self.chat_view.display_message(
+                "max_tokens: {}".format(self.chat_model.config["openai"]["max_tokens"]),
+                "info",
+            )
         # }}}
 
         # {{{ Set max tokens
