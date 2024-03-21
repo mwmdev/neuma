@@ -1,14 +1,14 @@
 [openai]
 model = "gpt-3.5-turbo"
-# model = "gpt-4-0613"
-temperature = 0.3
+#model = "gpt-4-0613"
+temperature = 0.5
 top_p = 1
 max_tokens = 2048
 
 [audio]
-input_device = 4 # the device for voice input (list devices with "lm")
+input_device = 6  # the device for voice input (list devices with "lm")
 input_timeout = 5 # the number of seconds after which listening stops and transcriptions starts
-input_limit = 20 # the maximum number of seconds that can be listened to in one go
+input_limit = 20  # the maximum number of seconds that can be listened to in one go
 
 [voices]
 english = "en-GB-Neural2-B"
@@ -18,7 +18,7 @@ spanish = "es-ES-Neural2-B"
 russian = "ru-RU-Wavenet-B"
 
 [conversations]
-data_folder = "./"
+data_folder = "./data/"
 
 [modes]
 normal = ""
@@ -27,7 +27,7 @@ code = "I want you to act as a # developer. Output # for any requests and only #
 trans = "Translate this into # : "
 char = "Imagine you are writing a novel about #. I want you to respond and answer like # using the tone, manner and vocabulary # would use. Do not write any explanations. Only answer like #. You must know all of the knowledge of #. My first question is : "
 sum = "Summarize this and display it in a list of bullet points : "
-csv = "Print a CSV list of : "
+#csv = "Print a CSV list of : "
 
 [embeddings]
 model = "text-embedding-ada-002"
@@ -38,9 +38,12 @@ default = "docs"
 
 [theme]
 section = "#d3869b" # pink
-info = "#8ec07c" # aqua
+info = "#8ec07c"    # aqua
 success = "#b8bb26" # green
 warning = "#fabd2f" # yellow
-error = "#fb4934" # red
-prompt = "#928374" # grey
-answer = "#83a598" # blue
+error = "#fb4934"   # red
+prompt = "#928374"  # grey
+answer = "#83a598"  # blue
+
+[debug]
+logging = false

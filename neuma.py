@@ -2,10 +2,15 @@ import os  # For IO
 import sys  # For IO
 import shutil  # For IO
 import subprocess  # For IO
-import openai  # The good stuff
+import openai 
+from openai import OpenAI  # The good stuff
+import pyaudio
 import time  # For logging
 from time import sleep  # Zzz
 import toml  # For parsing settings
+import logging  # For logging
+from rich.logging import RichHandler  # For logging
+
 import json  # For parsing JSON
 import pyperclip  # For copying to clipboard
 import re  # For regex
@@ -20,10 +25,10 @@ import speech_recognition
 import sounddevice
 
 # Voice output
-from google.cloud import texttospeech
+# from google.cloud import texttospeech
 
 # Document loaders
-from langchain.document_loaders import (
+from langchain_community.document_loaders import (
     CSVLoader,
     PyMuPDFLoader,
     TextLoader,
@@ -39,29 +44,28 @@ from langchain.document_loaders import (
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 # Vector stores
-from langchain.vectorstores import Chroma
+from langchain_community.vectorstores import Chroma
 
 # Embeddings
-from langchain.embeddings import OpenAIEmbeddings
+from langchain_community.embeddings import OpenAIEmbeddings
 
 # Memory
 from langchain.memory import ConversationBufferMemory
 
 # Chat models
-from langchain.chat_models import ChatOpenAI
+# from langchain.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 
 # LLM
 from langchain.chains import ConversationalRetrievalChain
-from langchain.callbacks import get_openai_callback
-
+from langchain_community.callbacks import get_openai_callback
 
 # Formatting
-from rich.console import (
-    Console,
-    OverflowMethod,
-)  # https://rich.readthedocs.io/en/stable/console.html
+from rich.console import Console
+# from rich.style import Style
 from rich.theme import Theme
-from rich.spinner import Spinner
+# from rich.highlighter import RegexHighlighter
+# from rich.spinner import Spinner
 from rich import print
 from rich.padding import Padding
 from rich.table import Table
@@ -69,50 +73,35 @@ from rich import box
 from rich.syntax import Syntax
 
 
-# {{{ Logging
-class Logger:
-    LOG_LEVELS = {"DEBUG": 0, "INFO": 1, "WARNING": 2, "ERROR": 3, "CRITICAL": 4}
-
-    def __init__(self, filename):
-        self.filename = filename
-        self.level = self.LOG_LEVELS["INFO"]
-        try:
-            open(filename, "a").close()
-            self.file = open(filename, "a")
-            self.file.truncate(0)
-        except Exception as e:
-            print(f"Error opening log file: {e}")
-
-    def log(self, message: str, level: str = "INFO"):
-        if level is not None:
-            level_value = self.LOG_LEVELS[level]
-        else:
-            level_value = self.level
-
-        if level_value >= self.level:
-            write = self.file.write(f"{time.ctime()} [{level}] {message}\n")
-            if write:
-                self.file.flush()
-            else:
-                print(f"Error writing to log file: {write}")
-
-    def close(self):
-        self.file.close()
-
-
-log = Logger("./neuma.log")
-# }}}
-
-
 # {{{ ChatModel
 class ChatModel:
     def __init__(self):
         self.config = self.get_config()
+        self.logger = self.set_logger()
+        self.client = OpenAI()
         self.mode = "normal"  # Default mode
+        # self.persona = "default"
         self.persona = self.set_persona("default")
         self.voice_output = False  # Default voice output
         self.voice = self.config["voices"]["english"]  # Default voice
-        self.vector_db = self.config["vector_db"]["default"]  # Default vector db
+        self.vector_db = ""  # Default
+        self.debug = self.config["debug"]
+
+    # {{{ Set logger
+    def set_logger(self) -> logging.Logger | None:
+        logging.basicConfig(
+            level="NOTSET",
+            format="%(message)s",
+            datefmt="[%X]",
+            handlers=[RichHandler(rich_tracebacks=True)],
+        )
+        log = logging.getLogger("rich")
+        debug_log = self.config["debug"]["logging"]
+        if debug_log is not True:
+            logging.disable(sys.maxsize)
+        return log
+
+    # }}}
 
     # {{{ Get config
     def get_config(self) -> dict:
@@ -126,8 +115,7 @@ class ChatModel:
             with open(config_path, "r") as f:
                 config = toml.load(f)
         except Exception as e:
-            log.log("Error loading config: {}".format(e))
-            return e
+            raise ValueError("No config file found.")
 
         # Get API keys
         if os.path.isfile(os.path.expanduser("~/.config/neuma/.env")):
@@ -141,16 +129,15 @@ class ChatModel:
                 openai_api_key = env["OPENAI_API_KEY"]
                 if openai_api_key:
                     config["openai"]["api_key"] = openai_api_key
-                    log.log("OpenAI API key loaded : {}".format(config["openai"]))
                 # Google app
                 google_app_api_key = env["GOOGLE_APPLICATION_CREDENTIALS"]
                 if google_app_api_key:
                     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = google_app_api_key
                 else:
                     raise ValueError("No API key found.")
+
         except Exception as e:
-            log.log("Error loading API keys: {}".format(e))
-            return e
+            raise ValueError("Error loading API key.")
 
         return config
 
@@ -167,53 +154,57 @@ class ChatModel:
 
         # Conversation up to this point
         conversation = self.conversation
-        # log.log("conversation: {}".format(conversation))
+        # self.logger.info("conversation: {}".format(conversation))
 
         # {{{ Persona identity
         if not conversation:
-            log.log("Persona : {}".format(self.persona))
+            self.logger.info("Persona : {}".format(self.persona))
+            if not isinstance(self.persona, str):
+                self.logger.info("Persona is not a string")
+                self.persona = "default"
+
             persona_identity = self.get_persona_identity()
             for message in persona_identity:
                 conversation.append(message)
         # }}}
 
         # {{{ Mode instructions
-        log.log("Mode : {}".format(self.mode))
+        self.logger.info("Mode : {}".format(self.mode))
         mode_instructions = self.config["modes"][self.mode]
         if mode_instructions:
             # Replace # with all the text after # in the user_prompt
             hashtag = self.find_hashtag(self.user_prompt)
-            log.log("hashtag: {}".format(hashtag))
+            self.logger.info("hashtag: {}".format(hashtag))
             if hashtag:
                 mode_instructions = mode_instructions.replace("#", hashtag)
             mode_instructions_message = {"role": "system", "content": mode_instructions}
             conversation.append(mode_instructions_message)
-            log.log("Mode instructions : {}".format(mode_instructions_message))
+            self.logger.info("Mode instructions : {}".format(mode_instructions_message))
         # }}}
 
         # {{{ File content to insert
         if "~{f:" in user_prompt and "}~" in user_prompt:
             file_path = user_prompt.split("~{f:")[1].split("}~")[0]
-            log.log("file_path: {}".format(file_path))
+            self.logger.info("file_path: {}".format(file_path))
             if os.path.isfile(file_path):
                 with open(file_path, "r") as f:
                     file_content = f.read()
                     user_prompt = user_prompt.replace(
                         "~{f:" + file_path + "}~", file_content
                     )
-                    log.log("user_prompt: {}".format(user_prompt))
+                    self.logger.info("user_prompt: {}".format(user_prompt))
             else:
-                log.log("File not found")
+                self.logger.info("File not found")
         # }}}
 
         # {{{ URL content to insert
         if "~{w:" in user_prompt and "}~" in user_prompt:
             url = user_prompt.split("~{w:")[1].split("}~")[0]
-            log.log("url: {}".format(url))
+            self.logger.info("url: {}".format(url))
             try:
                 response = requests.get(url)
                 if response.status_code == 200:
-                    log.log("response: {}".format(response))
+                    self.logger.info("response: {}".format(response))
                     soup = BeautifulSoup(response.text, "html.parser")
                     url_content = soup.get_text()
                     # remove all newlines and extra spaces
@@ -221,18 +212,18 @@ class ChatModel:
                     if len(url_content) > 3000:
                         url_content = url_content[:3000]
                     user_prompt = user_prompt.replace("~{w:" + url + "}~", url_content)
-                    log.log("user_prompt: {}".format(user_prompt))
+                    self.logger.info("user_prompt: {}".format(user_prompt))
                 else:
-                    log.log("Error getting URL content")
+                    self.logger.info("Error getting URL content")
             except Exception as e:
-                log.log("Error getting URL content: {}".format(e))
+                self.logger.info("Error getting URL content: {}".format(e))
         # }}}
 
         # {{{ User input
         user_prompt = {"role": "user", "content": user_prompt}
         conversation.append(user_prompt)
-        log.log("User prompt : {}".format(user_prompt))
-        log.log("Final messages: {}".format(conversation))
+        self.logger.info("User prompt : {}".format(user_prompt))
+        self.logger.info("Final messages: {}".format(conversation))
         # }}}
 
         return conversation
@@ -246,34 +237,104 @@ class ChatModel:
         prompt = json.dumps(messages)
 
         api_key = self.config["openai"]["api_key"]
-        # log.log("api_key: {}".format(api_key))
+        self.logger.info("api_key: {}".format(api_key))
 
         model = self.config["openai"]["model"]
-        # log.log("model: {}".format(model))
+        self.logger.info("model: {}".format(model))
 
         temperature = self.config["openai"]["temperature"]
-        # log.log("temperature: {}".format(temperature))
+        self.logger.info("temperature: {}".format(temperature))
 
         top_p = self.config["openai"]["top_p"]
-        # log.log("top_p: {}".format(top_p))
+        self.logger.info("top_p: {}".format(top_p))
 
         max_tokens = self.config["openai"]["max_tokens"]
-        # log.log("max_tokens: {}".format(max_tokens))
+        self.logger.info("max_tokens: {}".format(max_tokens))
 
-        persist_folder = self.config["vector_db"]["persist_folder"]
+        # {{{ If we are doing a vector db query
+        if self.vector_db != "":
+            self.logger.info("type of query: vector db")
 
-        vector_db_name = self.vector_db
-        full_path = os.path.join(persist_folder, vector_db_name)
+            vector_db_name = self.vector_db
+            self.logger.info("vector_db_name: {}".format(vector_db_name))
 
-        # Log messages :
-        # log.log("messages: {}".format(messages))
+            persist_folder = self.config["vector_db"]["persist_folder"]
+            self.logger.info("persist_folder: {}".format(persist_folder))
 
-        # If variable "chat_history" does not exist, create it
-        if "chat_history" not in globals():
-            chat_history = []
+            full_path = os.path.join(persist_folder, vector_db_name)
+            self.logger.info("full_path: {}".format(full_path))
 
-        # LLM
-        try:
+            # If variable "chat_history" does not exist, create it
+            if "chat_history" not in globals():
+                chat_history = []
+
+            # Embeddings
+            try:
+                embeddings = OpenAIEmbeddings(
+                    openai_api_key=os.environ["OPENAI_API_KEY"],
+                    model=self.config["embeddings"]["model"],
+                )
+                # self.logger.info("embeddings: {}".format(embeddings))
+            except Exception as e:
+                self.logger.exception(e)
+
+            # Vector store
+            try:
+                full_path = os.path.join(persist_folder, vector_db_name)
+                vector_db = Chroma(
+                    persist_directory=full_path,
+                    embedding_function=embeddings,
+                )
+                # self.logger.info("vector_db: {}".format(vector_db))
+            except Exception as e:
+                self.logger.exception(e)
+
+            # Chain
+            try:
+                retriever = vector_db.as_retriever(
+                    search_type="similarity",
+                    search_kwargs={"k": 2},
+                )
+                llm = ChatOpenAI(
+                    openai_api_key=os.environ["OPENAI_API_KEY"],
+                    model_name=model,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    # top_p=top_p,
+                )
+
+                qa = ConversationalRetrievalChain.from_llm(
+                        llm=llm, 
+                        retriever=retriever,
+                        return_source_documents=True
+                    )
+
+                with get_openai_callback() as callback:
+                    response = qa({"question": prompt, "chat_history": chat_history})
+                    self.logger.info("response: {}".format(response))
+                    response_data = {
+                        "id": "",
+                        "created": "",
+                        "status": "success",
+                        "message": response["answer"],
+                        "promptTokens": callback.prompt_tokens,
+                        "completionTokens": callback.completion_tokens,
+                        "totalTokens": callback.total_tokens,
+                        # 'sourceDocuments': response['source_documents'][0],
+                    }
+                    self.logger.info("response_data: {}".format(response_data))
+
+            except Exception as e:
+                self.logger.exception(e)
+
+            chat_history.append(response_data["message"])
+
+        # }}}
+
+        # {{{ If we are doing a normal query
+        else:
+            self.logger.info("type of query: default")
+
             llm = ChatOpenAI(
                 openai_api_key=os.environ["OPENAI_API_KEY"],
                 model_name=model,
@@ -281,62 +342,32 @@ class ChatModel:
                 max_tokens=max_tokens,
                 # top_p=top_p,
             )
-            # log.log("llm: {}".format(llm))
-        except Exception as e:
-            return e
-
-        # Embeddings
-        try:
-            embeddings = OpenAIEmbeddings(
-                openai_api_key=os.environ["OPENAI_API_KEY"],
-            )
-            # log.log("embeddings: {}".format(embeddings))
-        except Exception as e:
-            return e
-
-        # Vector store
-        try:
-            full_path = os.path.join(persist_folder, vector_db_name)
-            vector_db = Chroma(
-                persist_directory=full_path,
-                embedding_function=embeddings,
-            )
-            # log.log("vector_db: {}".format(vector_db))
-        except Exception as e:
-            return e
-
-        # Chain
-        try:
-            retriever = vector_db.as_retriever(
-                search_type="similarity",
-                search_kwargs={"k": 2},
-            )
-            llm = ChatOpenAI(model_name=model)
-
-            qa = ConversationalRetrievalChain.from_llm(llm=llm, retriever=retriever)
-
-            with get_openai_callback() as callback:
-                response = qa({"question": prompt, "chat_history": chat_history})
-                # response = chain({"question": prompt, "chat_history": chat_history})
-                response_data = {
-                    "id": "",
-                    "created": "",
-                    "status": "success",
-                    "message": response["answer"],
-                    "promptTokens": callback.prompt_tokens,
-                    "completionTokens": callback.completion_tokens,
-                    "totalTokens": callback.total_tokens,
-                    # 'sourceDocuments': response['source_documents'][0],
-                }
-                log.log("response_data: {}".format(response_data))
-        except Exception as e:
-            return e
+            try:
+                with get_openai_callback() as callback:
+                    chat_completions = self.client.chat.completions.create(
+                    model=model,
+                    messages=messages,
+                    temperature=temperature,
+                    top_p=top_p)
+                    response = chat_completions.choices[0].message.content
+                    response_data = {
+                        "id": "",
+                        "created": "",
+                        "status": "success",
+                        "message": response,
+                        "promptTokens": callback.prompt_tokens,
+                        "completionTokens": callback.completion_tokens,
+                        "totalTokens": callback.total_tokens,
+                        # 'sourceDocuments': response['source_documents'][0],
+                    }
+                    self.logger.info("response_data: {}".format(response_data))
+            except Exception as e:
+                self.logger.exception(e)
+        # }}}
 
         # Add to conversation
         response_message = {"role": "assistant", "content": response_data["message"]}
         self.conversation.append(response_message)
-
-        chat_history.append(response_data["message"])
 
         # Process the response
         self.processed_response = self.process_response(response_data["message"])
@@ -368,7 +399,7 @@ class ChatModel:
                 response = response.split("|", 1)[1]
                 response = "|" + response
 
-            log.log("response: {}".format(response))
+            self.logger.info("response: {}".format(response))
 
             lines = response.split("\n")
             lines = list(filter(None, lines))
@@ -420,25 +451,29 @@ class ChatModel:
 
     # List personae
     def list_personae(self) -> str | dict | Exception:
+        self.logger.info("list_personae()")
         """List the available personae from the personae file"""
+        personae = {}
         if os.path.isfile(os.path.expanduser("~/.config/neuma/personae.toml")):
             personae_path = os.path.expanduser("~/.config/neuma/personae.toml")
-            log.log("Personae path : {}".format(personae_path))
+            self.logger.info("Personae path : {}".format(personae_path))
         else:
             personae_path = (
                 os.path.dirname(os.path.realpath(__file__)) + "/personae.toml"
             )
-            log.log("Personae path : {}".format(personae_path))
+            self.logger.info("Personae path : {}".format(personae_path))
         try:
             with open(personae_path, "r") as f:
                 personae = toml.load(f)
-                log.log("Personae : {}".format(personae))
+                self.logger.info("Personae available : {}".format(len(personae["persona"])))
+
         except Exception as e:
-            return e
+            self.logger.exception(e)
         return personae
 
     # Set persona
     def set_persona(self, persona: str) -> bool | Exception:
+        self.logger.info("Setting persona to : {}".format(persona))
         # TODO: Check if persona exists before setting
         self.persona = persona
         temperature = self.get_persona_temperature()
@@ -456,10 +491,10 @@ class ChatModel:
             for persona in personae["persona"]:
                 if persona["name"] == self.persona:
                     persona_identity = persona["messages"]
-                    log.log("Persona identity : {}".format(persona_identity))
+                    self.logger.info("Persona identity : {}".format(persona_identity))
         else:
             persona_identity = ""
-        return persona_identityidentity
+        return persona_identity
 
     # Get persona temperature
     def get_persona_temperature(self) -> float:
@@ -514,7 +549,7 @@ class ChatModel:
                     output += message["content"] + "\n\n"
                 f.write(output)
         except Exception as e:
-            return e
+            self.logger.exception(e)
         return True
 
     # List conversations
@@ -523,7 +558,7 @@ class ChatModel:
         try:
             files = [f for f in os.listdir(data_folder) if f.endswith(".neu")]
         except Exception as e:
-            return e
+            self.logger.exception(e)
         return files
 
     # Open conversation
@@ -535,7 +570,7 @@ class ChatModel:
                 self.conversation = f.read()
 
         except Exception as e:
-            return e
+            self.logger.exception(e)
         return True
 
     # Trash conversation
@@ -545,7 +580,7 @@ class ChatModel:
         try:
             os.remove(data_folder + filename + ".neu")
         except Exception as e:
-            return e
+            self.logger.exception(e)
         return True
 
     # }}}
@@ -574,7 +609,7 @@ class ChatModel:
         words = prompt.split(" ")
         for word in words:
             if word.startswith("#"):
-                log.log("Hashtag found : {}".format(word))
+                self.logger.info("Hashtag found : {}".format(word))
                 return word[1:]
         return False
 
@@ -584,7 +619,7 @@ class ChatModel:
 
     # {{{ List models
     def list_models(self) -> list:
-        models = openai.Model.list()
+        models = self.client.models.list()
         return models
 
     # }}}
@@ -596,16 +631,16 @@ class ChatModel:
         self.config = self.get_config()
         self.input_device = self.config["audio"]["input_device"]
         self.input_timeout = self.config["audio"]["input_timeout"]
-        log.log("input_timeout: {}".format(self.input_timeout))
+        self.logger.info("input_timeout: {}".format(self.input_timeout))
         self.input_limit = self.config["audio"]["input_limit"]
-        log.log("input_limit: {}".format(self.input_limit))
+        self.logger.info("input_limit: {}".format(self.input_limit))
 
-        log.log("Listening...")
+        self.logger.info("Listening...")
 
         # https://github.com/Uberi/speech_recognition
         recognizer = speech_recognition.Recognizer()
 
-        log.log("input_device: {}".format(self.input_device))
+        self.logger.info("input_device: {}".format(self.input_device))
         with speech_recognition.Microphone(device_index=self.input_device) as source:
             recognizer.adjust_for_ambient_noise(source)
             try:
@@ -621,37 +656,30 @@ class ChatModel:
 
                 # Transcribe audio to text https://platform.openai.com/docs/guides/speech-to-text
                 transcription = self.transcribe(audio_file)
+                self.logger.info("transcription: {}".format(transcription))
 
                 return transcription
 
             except speech_recognition.WaitTimeoutError as e:
-                return e
+                self.logger.exception(e)
+                self.console.print("Timeout error")
 
     # }}}
 
     # {{{ Transcribe
     def transcribe(self, audio_file: str) -> str:
-        api_key = self.config["openai"]["api_key"]
-        model = "whisper-1"
-        prompt = ""
-        response_format = "json"
-        temperature = 0
-        language = self.voice[:2]
-        try:
-            transcription = openai.Audio.transcribe(
-                api_key=api_key,
-                model=model,
-                file=audio_file,
-                prompt=prompt,
-                response_format=response_format,
-                temperature=temperature,
-                language=language,
-            )
-            transcription = transcription["text"]
-            return transcription
 
-        except speech_recognition.RequestError as e:
-            return e
+        try:
+            transcript = self.client.audio.transcriptions.create(
+                model="whisper-1",
+                file=audio_file,
+            )
+            transcript = transcript.text
+
+            return transcript
+
+        except Exception as e:
+            self.logger.exception(e)
 
     # }}}
 
@@ -674,47 +702,16 @@ class ChatModel:
 
     def speak(self, response: str) -> None:
         if self.voice_output == True:
-            # Instantiates a client
-            client = texttospeech.TextToSpeechClient()
 
-            # Set the text input to be synthesized
-            synthesis_input = texttospeech.SynthesisInput(text=response)
-
-            # if a persona is set
-            # if self.persona != "":
-            #     voice_name = self.get_persona_voice_name()
-            # else:
-            voice_name = self.get_voice()
-
-            language_code = voice_name[:5]
-
-            # Build the voice request
-            voice = texttospeech.VoiceSelectionParams(
-                # https://cloud.google.com/text-to-speech/docs/voices
-                language_code=language_code,
-                name=voice_name,
-            )
-
-            # Select the type of audio file you want returned
-            audio_config = texttospeech.AudioConfig(
-                audio_encoding=texttospeech.AudioEncoding.MP3
-            )
-
-            # Perform the text-to-speech request
-            response = client.synthesize_speech(
-                input=synthesis_input, voice=voice, audio_config=audio_config
-            )
-
-            # The response's audio_content is binary.
-            with open("tmp.mp3", "wb") as out:
-                # Write the response to the output file.
-                out.write(response.audio_content)
-
-                # play with mpv without output
-                subprocess.run(["mpv", "--really-quiet", "tmp.mp3"])
-
-                # remove the audio file
-                os.remove("tmp.mp3")
+            audio_file = "./tmp.wav"
+            with openai.audio.speech.with_streaming_response.create(
+                model="tts-1",
+                voice="shimmer",
+                input=response,
+            ) as response:
+                response.stream_to_file(audio_file)
+                subprocess.run(["mpv", "--really-quiet", audio_file])
+                os.remove(audio_file)
 
     # }}}
 
@@ -742,22 +739,27 @@ class ChatModel:
 
         # Check if file extension is supported
         if file_extension not in LOADER_MAPPING:
-            return Exception("File extension not supported.")
+            self.logger.exception(
+                "File extension not supported: {}".format(file_extension)
+            )
 
         # Load loader corresponding to file extension
         Loader, kwargs = LOADER_MAPPING[file_extension]
         try:
             loader = Loader(file_path, **kwargs)
+            self.logger.info("Loader: {}".format(loader))
         except Exception as e:
-            return e
+            self.logger.exception(e)
 
         # Load document
         try:
             document = loader.load()
-        except Exception as e:
-            return e
+            self.logger.info("Document loaded")
 
-        return document
+            return document
+
+        except Exception as e:
+            self.logger.exception(e)
 
     # }}}
 
@@ -768,26 +770,26 @@ class ChatModel:
                 chunk_size=500, chunk_overlap=10
             )
             documents = text_splitter.split_documents(document)
+            self.logger.info("Text splitted")
+
+            return documents
 
         except Exception as e:
-            return e
-
-        return documents
+            self.logger.exception(e)
 
     # }}}
 
     # {{{ Embed
-    def embed_doc(self, documents: list) -> list | Exception:
+    def embed_doc(self, documents: list) -> OpenAIEmbeddings | None | Exception:
         embeddings_model = self.config["embeddings"]["model"]
+        self.logger.info("Embeddings model: {}".format(embeddings_model))
         try:
-            embeddings = OpenAIEmbeddings(
-                openai_api_key=os.environ["OPENAI_API_KEY"], model=embeddings_model
-            )
+            embeddings = OpenAIEmbeddings(model=embeddings_model)
+            embeddings.embed_documents([text.page_content for text in documents])
+            return embeddings
 
         except Exception as e:
-            return e
-
-        return embeddings
+            self.logger.exception(e)
 
     # }}}
 
@@ -797,51 +799,59 @@ class ChatModel:
     ) -> list | Exception:
         persist_folder = self.config["vector_db"]["persist_folder"]
         if not os.path.exists(persist_folder):
-            log.log("Vector store folder doesn't exist, creating it")
+            self.logger.info("Vector store folder doesn't exist, creating it")
             os.makedirs(persist_folder)
 
         vector_db_name = self.vector_db
         full_path = os.path.join(persist_folder, vector_db_name)
-        log.log("full_path: {}".format(full_path))
+        self.logger.info("full_path: {}".format(full_path))
 
         try:
             # if vector store exists
             if os.path.exists(full_path):
-                log.log("Vector store exists")
+                self.logger.info("Vector store exists")
                 try:
                     vector_db = Chroma(
                         persist_directory=full_path,
                         embedding_function=embeddings,
                     )
-                    log.log("Vector store loaded")
+                    # create collection
+                    collection = vector_db.create_collection(name="documents")
+
+                    self.logger.info("Vector store loaded")
                 except Exception as e:
-                    return e
+                    self.logger.exception(e)
 
                 try:
-                    vector_db.add_documents(documents)
-                    log.log("Document added to vector store")
+                    # vector_db.add_documents(documents)
+                    collection.add(
+                        documents=documents,
+                        metadatas=[{"source": "test.pdf"} for _ in documents],
+                        )
+
+                    self.logger.info("Document added to vector store")
                 except Exception as e:
-                    return e
+                    self.logger.exception(e)
 
             # if vector store doesn't exist, create it
             else:
-                log.log("Vector store doesn't exist")
+                self.logger.info("Vector store doesn't exist")
                 vector_db = Chroma.from_documents(
-                    documents,
-                    embeddings,
+                    documents=documents,
+                    embeddings=embeddings,
                     persist_directory=full_path,
                 )
             collection = vector_db._collection.get()
             doc_ids = collection["ids"]
         except Exception as e:
-            return e
+            self.logger.exception(e)
 
         # Save vector store to disk
         try:
             vector_db.persist()
-            log.log("Vector store saved to disk")
+            self.logger.info("Vector store saved to disk")
         except Exception as e:
-            return e
+            self.logger.exception(e)
 
         return doc_ids
 
@@ -877,8 +887,26 @@ class ChatModel:
         try:
             shutil.rmtree(persist_folder + "/" + vector_db)
         except Exception as e:
+            self.logger.exception(e)
             return e
+
         return True
+
+    # }}}
+
+    # {{{ Get vector db details
+    def get_vector_db_details(self):
+        persist_folder = self.config["vector_db"]["persist_folder"]
+        full_path = os.path.join(persist_folder, self.vector_db)
+        try:
+            vector_db = Chroma(
+                persist_directory=full_path,
+                # embedding_function=embeddings,
+            )
+            vector_db_details = vector_db._collection.metadata()
+            return vector_db_details
+        except Exception as e:
+            self.logger.exception(e)
 
     # }}}
 
@@ -896,8 +924,11 @@ class ChatModel:
 
     # {{{ Set temperature
     def set_temperature(self, temperature: float) -> bool:
-        self.config["openai"]["temperature"] = float(temperature)
-        return True
+        if int(temperature) < 0 or int(temperature) > 2:
+            return Exception("Temperature must be between 0 and 2")
+        else:
+            self.config["openai"]["temperature"] = int(temperature)
+            return True
 
     # }}}
 
@@ -947,7 +978,7 @@ class ChatView:
         help_table.add_row("c \[conversation]", "Open conversation \[conversation]")
         help_table.add_row("cc", "Create a new conversation")
         help_table.add_row(
-            "cs [conversation]", "Save the current conversation as [conversation]"
+            "cs [conversation]", "Save the current conversation as \[conversation]"
         )
         help_table.add_row("ct \[conversation]", "Trash conversation \[conversation]")
         help_table.add_row("cy", "Copy current conversation to clipboard")
@@ -996,6 +1027,8 @@ class ChatController:
     def __init__(self, chat_model, chat_view):
         self.chat_model = chat_model
         self.chat_view = chat_view
+
+        self.logger = logging.getLogger("rich")
 
         self.chat_view.config = self.chat_model.config
 
@@ -1107,7 +1140,7 @@ class ChatController:
             # log conversation
             if len(self.chat_model.conversation) > 0:
                 last_message = self.chat_model.conversation[-1].get("content")
-                log.log("Last message: {}".format(last_message))
+                self.logger.info("Last message: {}".format(last_message))
                 self.chat_model.copy_to_clipboard(last_message)
                 self.chat_view.display_message(
                     "Copied last answer to clipboard.", "success"
@@ -1336,7 +1369,7 @@ class ChatController:
             if self.input_mode == "text":
                 self.input_mode = "voice"
                 self.chat_view.display_message("Voice input mode enabled.", "success")
-                log.log("Voice input mode enabled.")
+                self.logger.info("Voice input mode enabled. Disable by saying 'Disable voice input'.")
 
                 # while in voice input mode
                 while self.input_mode == "voice":
@@ -1356,16 +1389,17 @@ class ChatController:
                     else:
                         # Display voice input
                         self.chat_view.display_message(self.voice_input, "prompt")
-
-                        # if voice input is "Exit."
-                        if self.voice_input == "Exit.":
+                        # if self.voice_input == "Disable voice input.":
+                        if (
+                            "disable" in self.voice_input.lower() and "voice" in self.voice_input.lower() and "input" in self.voice_input.lower()
+                        ):
                             self.input_mode = "text"
                             self.chat_model.set_voice_output(False)
                             self.chat_view.display_message(
                                 "Voice input mode disabled.", "success"
                             )
                         else:
-                            log.log("Processing voice input...")
+                            self.logger.info("Processing voice input...")
 
                             # Start spinner
                             with self.chat_view.console.status(""):
@@ -1472,57 +1506,92 @@ class ChatController:
             trash_vector_db = self.chat_model.trash_vector_db(vector_db)
             if isinstance(trash_vector_db, Exception):
                 self.chat_view.display_message(
-                    "Error trashing vector store: {}".format(trash_vector_db),
+                    "Error trashing vector db: {}".format(trash_vector_db),
                     "error",
                 )
             else:
-                self.chat_view.display_message("Vector store trashed.", "success")
+                self.chat_view.display_message("Vector db trashed.", "success")
         # }}}
 
         # {{{ Embed document
         elif command.startswith("e "):
             file_path = command.split(" ")[1]
 
-            # Load document
-            try:
-                document = self.chat_model.load_document(file_path)
-                log.log("Loaded document: {}".format(file_path))
-            except Exception as e:
-                self.chat_view.display_message(
-                    "Error loading document: {}".format(e), "error"
-                )
+            with self.chat_view.console.status(""):
 
-            # Split text
-            try:
-                chunks = self.chat_model.split_text(document)
-                log.log("Document split into {} chunks.".format(len(chunks)))
-            except Exception as e:
-                self.chat_view.display_message(
-                    "Error splitting text: {}".format(e), "error"
-                )
+                # If there is no vector db set, return an error
+                if self.chat_model.get_vector_db() == "":
+                    self.chat_view.display_message(
+                        "Please create or use a vector store first.", "error"
+                    )
+                    return
 
-            # Embed document
-            try:
-                embeddings = self.chat_model.embed_doc(chunks)
-                log.log("Document embedded")
-            except Exception as e:
-                self.chat_view.display_message(
-                    "Error embedding document: {}".format(e), "error"
-                )
+                # If there is no file path specified, return an error
+                if file_path == "":
+                    self.chat_view.display_message("Please specify a file path.", "error")
+                    return
 
-            # Store as vector
-            try:
-                doc_ids = self.chat_model.store_as_vector(chunks, embeddings)
-                log.log("Document stored as vector!")
-            except Exception as e:
-                self.chat_view.display_message(
-                    "Error storing document as vector: {}".format(e), "error"
-                )
+                # If file path points to a document that doesn't exist, return an error
+                if not os.path.exists(file_path):
+                    self.chat_view.display_message(
+                        "File not found: {}".format(file_path), "error"
+                    )
+                    return
 
-            # Display message
-            self.chat_view.display_message("Document embedded.", "success")
+                # Load document
+                try:
+                    document = self.chat_model.load_document(file_path)
+                    self.logger.info("Loaded document: {}".format(file_path))
+                except Exception as e:
+                    self.chat_view.display_message(
+                        "Error loading document: {}".format(e), "error"
+                    )
+
+                # Split text
+                try:
+                    chunks = self.chat_model.split_text(document)
+                    self.logger.info("Document split into {} chunks.".format(len(chunks)))
+                    self.logger.info("Chunks type: {}".format(type(chunks)))
+                except Exception as e:
+                    self.chat_view.display_message(
+                        "Error splitting text: {}".format(e), "error"
+                    )
+
+                # Embed document
+                try:
+                    embeddings = self.chat_model.embed_doc(chunks)
+                    self.logger.info("Document embedded")
+                except Exception as e:
+                    self.chat_view.display_message(
+                        "Error embedding document: {}".format(e), "error"
+                    )
+
+                # Store as vector
+                try:
+                    doc_ids = self.chat_model.store_as_vector(chunks, embeddings)
+                    self.logger.info("Document stored as vector!")
+                except Exception as e:
+                    self.chat_view.display_message(
+                        "Error storing document as vector: {}".format(e), "error"
+                    )
+
+                # display success message with some stats
+                self.chat_view.display_message(
+                    "Document embedded and stored as vector.", "success"
+                )
 
         # }}}
+
+        # Get vector db details
+        elif command == ("dd"):
+            vector_db_details = self.chat_model.get_vector_db_details()
+            if isinstance(vector_db_details, Exception):
+                self.chat_view.display_message(
+                    "Error getting vector db: {}".format(vector_db_details),
+                    "error",
+                )
+            else:
+                self.chat_view.display_message("Vector db details : {}".format(vector_db_details), "success")
 
         # }}}
 
@@ -1530,6 +1599,7 @@ class ChatController:
         else:
             # Start spinner
             with self.chat_view.console.status(""):
+
                 # Generate final prompt
                 try:
                     final_message = self.chat_model.generate_final_message(command)
@@ -1576,10 +1646,6 @@ class ChatController:
 
 # {{{ Main
 def main():
-    # clear console
-    os.system("touch neuma.log")
-    log.log("-------------- Starting neuma --------------")
-
     # Model
     chat_model = ChatModel()
 
