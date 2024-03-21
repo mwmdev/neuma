@@ -1238,7 +1238,6 @@ class ChatController:
         # {{{ Create conversation
         elif command == "cc":
             self.chat_model.new_conversation()
-            self.chat_model.set_persona("")
             self.chat_view.mode = "normal"
             self.chat_view.display_message("New conversation.", "success")
             time.sleep(1)
