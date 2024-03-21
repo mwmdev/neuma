@@ -353,22 +353,28 @@ So, to chat with a document you can do the following :
 
 By default `neuma` starts in  interactive mode, but you can also use command line arguments to return an answer right away, which can be useful for output redirection or piping.
 
-Available options :
+```
+> python neuma.py -h
 
-`-h` : Show the list of available options
+usage: neuma.py [-h] [-i INPUT] [-p PERSONAE] [-m MODE] [-t TEMP]
 
-`-i INPUT` : Input prompt
+neuma is a minimalistic ChatGPT interface for the command line.
 
-`-p PERSONAE` : Set the personae
-
-`-m MODE` : Set the mode
-
-`-t TEMP` : Set the temperature
+options:
+  -h, --help            show this help message and exit
+  -i INPUT, --input INPUT
+                        Input prompt
+  -p PERSONAE, --personae PERSONAE
+                        Set personae
+  -m MODE, --mode MODE  Set mode
+  -t TEMP, --temp TEMP  Set temperature
+```
 
 Examples :
 
 ```
 > python neuma.py -t 1.2 -i "Write a haiku about the moon"`
+  
   Silver orb casts light,
   Guiding night journeys below
   Moon's tranquil, bright glow.
@@ -376,6 +382,7 @@ Examples :
 
 ```
 > python neuma.py -t 0 -m "table" -i "Five US National parks by : name, size, climate"`
+
   ┏━━┳━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━┓
   ┃  ┃  National Park     ┃  Size (acres)  ┃  Climate                  ┃  ┃
   ┡━━╇━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━┩
