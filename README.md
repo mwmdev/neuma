@@ -21,36 +21,50 @@ Those instructions are for Linux, they may vary for other systems.
 
 You can launch the install script with the following command:
 
-```bash <(wget -qO- https://raw.githubusercontent.com/mwmdev/neuma/main/install.sh)```
+```shell
+bash <(wget -qO- https://raw.githubusercontent.com/mwmdev/neuma/main/install.sh)
+```
 
 ### Manual install
 
 Clone this repository to your local machine using the following command:
 
-```git clone https://github.com/mwmdev/neuma.git```
+```shell
+git clone https://github.com/mwmdev/neuma.git
+```
 
 Navigate to the directory where the repository was cloned:
 
-```cd neuma```
+```shell
+cd neuma
+```
 
 Install the required dependencies by running:
 
-```pip install -r requirements.txt```
+```shell
+pip install -r requirements.txt
+```
 
 Rename the `.env_example` to `.env` with:
 
-```mv .env_example .env```
+```shell
+mv .env_example .env
+```
 
 Edit `.env` and add your  [ChatGPT API key](https://platform.openai.com/account/api-keys).
 For voice output you also need [Google Application Default Credentials](https://cloud.google.com/docs/authentication/provide-credentials-adc).
 
 Move all config files to your `.config/neuma/` folder with:
 
-```mkdir ~/.config/neuma && mv .env config.toml persona.toml ~/.config/neuma/```
+```shell
+mkdir ~/.config/neuma && mv .env config.toml persona.toml ~/.config/neuma/
+```
 
 Finally, run the script with:
 
-```python neuma.py```
+```shell
+python neuma.py
+```
 
 ### Create an alias
 
