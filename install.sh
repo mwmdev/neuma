@@ -39,15 +39,12 @@ pip install -q -r requirements.txt
 # Rename .env_example to .env
 mv .env_example .env
 
-# Clear the file
-touch .env
-
 # Prompt for OpenAI API Key
 read -p "- Enter your OpenAI API Key (Press Enter to skip): " openai_api_key
 if [ -z "$openai_api_key" ]; then
   echo "- Skipping OpenAI API Key, you can enter it later in ~/.config/neuma/.env"
 else
-  echo "OPENAI_API_KEY=\"$openai_api_key\"" >> .env
+  echo "OPENAI_API_KEY=\"$openai_api_key\"" > .env
 fi
 
 # Prompt for Google Application Credentials
@@ -55,7 +52,7 @@ read -p "- Enter the path to your Google Application Credentials .json file (Pre
 if [ -z "$google_application_credentials" ]; then
   echo "- Skipping Google Application Credentials, you can enter it manually in ~/.config/neuma/.env"
 else
-  echo "GOOGLE_APPLICATION_CREDENTIALS=\"$google_application_credentials\"" >> .env
+  echo "GOOGLE_APPLICATION_CREDENTIALS=\"$google_application_credentials\"" > .env
 fi
 
 # Move config files to the ~/.config/neuma/ folder
