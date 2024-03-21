@@ -361,13 +361,11 @@ usage: neuma.py [-h] [-i INPUT] [-p PERSONAE] [-m MODE] [-t TEMP]
 neuma is a minimalistic ChatGPT interface for the command line.
 
 options:
-  -h, --help            show this help message and exit
-  -i INPUT, --input INPUT
-                        Input prompt
-  -p PERSONAE, --personae PERSONAE
-                        Set personae
-  -m MODE, --mode MODE  Set mode
-  -t TEMP, --temp TEMP  Set temperature
+  -h, --help                          Show this help message and exit
+  -i INPUT, --input INPUT             Input prompt
+  -p PERSONAE, --personae PERSONAE    Set personae
+  -m MODE, --mode MODE                Set mode
+  -t TEMP, --temp TEMP                Set temperature
 ```
 
 Examples :
