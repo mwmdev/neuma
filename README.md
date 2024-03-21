@@ -71,7 +71,9 @@ python neuma.py
 
 To make it easier to run `neuma`, you can create an alias in your `.bashrc` or `.zshrc` file by adding the following line:
 
-```alias neuma='python /path/to/neuma.py'```
+```
+alias neuma='python /path/to/neuma.py'*
+```
 
 ## Usage
 
@@ -239,7 +241,7 @@ Start with `#` followed by the separator you want to use.
 
 ### Personae
 
-Personae are profiles defined by a specific starting prompt and are defined in the `personae.toml` file.
+Personae are profiles defined by a specific starting prompt and temperature, they are configured in the `personae.toml` file.
 
 `p` : List available personae
 
@@ -282,9 +284,9 @@ Voice input can be used to transcribe voice to text.
 
 `vi` :  Switch to voice input
 
-Saying "Exit" will switch back to text input mode.
+Saying "Disable voice input" will switch back to text input mode.
 
-You can list available microphones with `lm` and set the one you want to use in the`audio` section of the config file.
+You can list available microphones with `lm` and set the one you want to use in the `audio` section of the config file.
 
 ```
 [audio]
