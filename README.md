@@ -17,6 +17,14 @@
 
 Those instructions are for Linux, they may vary for other systems.
 
+### Automatic install
+
+You can launch the install script with the following command:
+
+```bash <(wget -qO- https://raw.githubusercontent.com/mwmdev/neuma/main/install.sh)```
+
+### Manual install
+
 Clone this repository to your local machine using the following command:
 
 ```git clone https://github.com/mwmdev/neuma.git```
@@ -43,6 +51,12 @@ Move all config files to your `.config/neuma/` folder with:
 Finally, run the script with:
 
 ```python neuma.py```
+
+### Create an alias
+
+To make it easier to run `neuma`, you can create an alias in your `.bashrc` or `.zshrc` file by adding the following line:
+
+```alias neuma='python /path/to/neuma.py'```
 
 ## Usage
 
