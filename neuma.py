@@ -47,7 +47,8 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 
 # Embeddings
-from langchain_community.embeddings import OpenAIEmbeddings
+# from langchain_community.embeddings import OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
 
 # Memory
 from langchain.memory import ConversationBufferMemory
@@ -80,7 +81,6 @@ class ChatModel:
         self.logger = self.set_logger()
         self.client = OpenAI()
         self.mode = "normal"  # Default mode
-        # self.persona = "default"
         self.persona = self.set_persona("default")
         self.voice_output = False  # Default voice output
         self.voice = self.config["voices"]["english"]  # Default voice
@@ -620,7 +620,13 @@ class ChatModel:
     # {{{ List models
     def list_models(self) -> list:
         models = self.client.models.list()
-        return models
+        models = sorted(models, key=lambda x: x.created, reverse=True)
+        models_list = [model.id for model in models]
+        models_list = [model for model in models_list if "gpt" in model]
+        self.logger.info("models_list: {}".format(models_list))
+        return models_list
+
+
 
     # }}}
 
@@ -946,6 +952,15 @@ class ChatModel:
 
     # }}}
 
+    # Get GPT model
+    def get_model(self) -> str:
+        return self.config["openai"]["model"]
+
+    # Set GPT model
+    def set_model(self, model: str) -> bool:
+        self.config["openai"]["model"] = model
+        return True
+
 
 # }}}
 
@@ -1001,6 +1016,8 @@ class ChatView:
         help_table.add_row("tp \[top_p]", "Set the top_p to \[top_p]")
         help_table.add_row("mt", "Get the current max_tokens value")
         help_table.add_row("mt \[max_tokens]", "Set the max_tokens to \[max_tokens]")
+        help_table.add_row("g", "List available GPT models")
+        help_table.add_row("g [model]", "Set GPT model to [model]")
         help_table.add_row("lm", "List available microphones")
         help_table.add_row("cls", "Clear the screen")
         help_table.add_row("q", "Quit")
@@ -1217,6 +1234,23 @@ class ChatController:
         # }}}
 
         # }}}
+
+        # List GPT models
+        elif command == "g":
+            models = self.chat_model.list_models()
+            self.chat_view.display_message("GPT Models", "section")
+            current_model = self.chat_model.get_model()
+            for model in models:
+                if model == current_model:
+                    self.chat_view.display_message(model + " <", "info")
+                else:
+                    self.chat_view.display_message(model, "info")
+
+        # Set GPT model
+        elif command.startswith("g "):
+            model = command.split(" ")[1]
+            self.chat_model.set_model(model)
+            self.chat_view.display_message("Model set to {}.".format(model), "success")
 
         # {{{ Conversations
 

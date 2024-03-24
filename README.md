@@ -113,6 +113,8 @@ Press `h` followed by `Enter` to list all the commands.
 │ tp [top_p]        │ Set the top_p to [top_p]                        │
 │ mt                │ Get the current max_tokens value                │
 │ mt [max_tokens]   │ Set the max_tokens to [max_tokens]              │
+│ g                 │ List available GPT models                       │
+│ g [model]         │ Set GPT model to [model]                        │
 │ lm                │ List available microphones                      │
 │ cls               │ Clear the screen                                │
 │ q                 │ Quit                                            │
