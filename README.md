@@ -335,6 +335,46 @@ So, to chat with a document you can do the following :
 - Embed a document
 - Ask a question about it
 
+### GPT models
+
+You can switch between different GPT models. The default model is defined in the `config.toml` file.
+
+`g` : List available GPT models
+
+```
+> g
+  GPT Models                                                                                                                                                                                        
+  gpt-3.5-turbo-0125                                                                                                                                                                                      
+  gpt-4-turbo-preview                                                                                                                                                                                      
+  gpt-4-0125-preview                                                                                                                                                                                       
+  gpt-3.5-turbo-1106                                                                                                                                                                                       
+  gpt-4-1106-preview                                                                                                                                                                                       
+  gpt-4-vision-preview                                                                                                                                                                                     
+  gpt-3.5-turbo-instruct-0914                                                                                                                                                                              
+  gpt-3.5-turbo-instruct                                                                                                                                                                                   
+  gpt-4                                                                                                                                                                                                    
+  gpt-4-0613                                                                                                                                                                                               
+  gpt-3.5-turbo-0613                                                                                                                                                                                       
+  gpt-3.5-turbo-16k-0613                                                                                                                                                                                   
+  gpt-3.5-turbo-16k                                                                                                                                                                                        
+  gpt-3.5-turbo-0301                                                                                                                                                                                       
+  gpt-3.5-turbo <
+```
+
+`g [model]` : Set GPT model to [model]
+
+```
+> g gpt-3.5-turbo
+  Model set to gpt-3.5-turbo.                                                                                                                                                                              
+> when is your knowledge cutoff
+  My training data includes information up until September 2021.
+  
+> g gpt-4-turbo-preview
+  Model set to gpt-4-turbo-preview.                                                                                                                                                                        
+> when is your knowledge cutoff
+  My knowledge is up to date until April 2023.
+```
+
 ### Other commands
 
 `y` : Copy the last answer to the clipboard
