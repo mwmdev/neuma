@@ -17,14 +17,14 @@
 
 Those instructions are for Linux, they may vary for other systems.
 
-### Automatic install
+### One line install
 
 You can launch the install script with the following command:
 
 ```shell
 bash <(wget -qO- https://raw.githubusercontent.com/mwmdev/neuma/main/install.sh)
 ```
-During the install process you will be prompted for your  [ChatGPT API key](https://platform.openai.com/account/api-keys) and your [Google Application Default Credentials](https://cloud.google.com/docs/authentication/provide-credentials-adc) (for voice output). You can also skip those steps and add them later.
+During the installation process you will be prompted for your  [ChatGPT API key](https://platform.openai.com/account/api-keys) and your [Google Application Default Credentials](https://cloud.google.com/docs/authentication/provide-credentials-adc) (for voice output). You can also skip those steps and add them later.
 
 ### Manual install
 
@@ -145,11 +145,15 @@ Modes define specific expected output behaviors. Custom modes are added by editi
 
 `m [mode]` : Switch to mode [mode]
 
+Here are some of the built-in modes :
+
 #### Table display
 
 `m table`
 
-Displays the response in a table. Works best when column headers are defined explicitly and when `temperature` is set to 0.
+Displays the response in a table. Works best when column headers are defined explicitly in the prompt and `temperature` is set to 0.
+
+Example:
 
 ```
 > Five Hugo prize winners by : Name, Book, Year
@@ -174,7 +178,9 @@ Displays the response in a table. Works best when column headers are defined exp
 
 Displays only syntax highlighted code. Works best when `temperature` is set to 0.
 
-Start with `#` followed by the name of the language and the requested code.
+Start with `#` followed by the name of the language and the prompt.
+
+Example:
 
 ```html
 > #html simple login form
@@ -202,9 +208,9 @@ Start with `#` followed by the name of the language and the requested code.
 
 `m trans`
 
-Displays translations.
+Translates text into another language. Works best when `temperature` is set to 0.
 
-Start with `#` followed by the name of the language to translate into and the phrase to translate.
+Start with `#` followed by the name of the language to translate into and the word or phrase to translate.
 
 ```
 > #german What's the carbon footprint of nuclear energy ?
@@ -215,7 +221,9 @@ Start with `#` followed by the name of the language to translate into and the ph
 
 `m char`
 
-Start with `#` followed by the name of the character you want to be impersonated.
+Impersonates a character.
+
+Start with `#` followed by the name of the character you want to be impersonated and your prompt.
 
 ```
 > #Bob_Marley Write the chorus to a new song.
@@ -229,7 +237,9 @@ Start with `#` followed by the name of the character you want to be impersonated
 
 `m csv`
 
-Start with `#` followed by the separator you want to use.
+Generates a CSV table. Works best when `temperature` is set to 0.
+
+Start with `#` followed by the separator you want to use and your prompt.
 
 ```
 > #; Five economics nobel prize winners by name, year, country and school of thought
