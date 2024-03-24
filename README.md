@@ -157,6 +157,11 @@ Example:
 
 ```
 > Five Hugo prize winners by : Name, Book, Year
+```
+
+Output:
+
+```
   ┏━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━┓
   ┃ Name               ┃ Book                                  ┃ Year ┃
   ┡━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━┩
@@ -182,8 +187,12 @@ Start with `#` followed by the name of the language and the prompt.
 
 Example:
 
-```html
+```
 > #html simple login form
+```
+
+Output:
+```html
   <!DOCTYPE html>
   <html>
     <head>
@@ -212,8 +221,13 @@ Translates text into another language. Works best when `temperature` is set to 0
 
 Start with `#` followed by the name of the language to translate into and the word or phrase to translate.
 
+Example:
 ```
 > #german What's the carbon footprint of nuclear energy ?
+```
+
+Output:
+```
   Wie groß ist der CO2-Fußabdruck von Kernenergie?
 ```
 
@@ -225,8 +239,14 @@ Impersonates a character.
 
 Start with `#` followed by the name of the character you want to be impersonated and your prompt.
 
+Example:
+
 ```
 > #Bob_Marley Write the chorus to a new song.
+```
+
+Output:
+```
   "Rise up and stand tall,
   Embrace the love that's all,
   Let your heart blaze and brawl,
@@ -241,9 +261,14 @@ Generates a CSV table. Works best when `temperature` is set to 0.
 
 Start with `#` followed by the separator you want to use and your prompt.
 
+Example:
 ```
 > #; Five economics nobel prize winners by name, year, country and school of thought
+```
 
+Output:
+
+```
   1; Milton Friedman; 1976; USA; Monetarism;
   2; Amartya Sen; 1998; India; Welfare economics;
   3; Joseph Stiglitz; 2001; USA; Information economics;
