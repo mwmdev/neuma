@@ -869,7 +869,7 @@ class ChatController:
 
         # Define arguments
         parser.add_argument("-i", "--input", help="Input prompt")
-        parser.add_argument("-p", "--personae", help="Set personae")
+        parser.add_argument("-p", "--persona", help="Set persona")
         parser.add_argument("-m", "--mode", help="Set mode")
         parser.add_argument("-t", "--temp", help="Set temperature")
 
