@@ -71,7 +71,7 @@ python neuma.py
 To make it easier to run `neuma`, you can create an alias in your `.bashrc` or `.zshrc` file by adding the following line:
 
 ```
-alias neuma='python /path/to/neuma.py'*
+alias n='source /path/to/neuma/env/bin/activate && python /path/to/neuma.py'*
 ```
 
 ## Usage
