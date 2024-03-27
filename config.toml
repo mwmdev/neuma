@@ -1,6 +1,5 @@
 [openai]
 model = "gpt-3.5-turbo-0125"
-temperature = 0.5
 top_p = 1
 max_tokens = 2048
 
@@ -8,13 +7,8 @@ max_tokens = 2048
 input_device = 6  # the device for voice input (list devices with "lm")
 input_timeout = 5 # the number of seconds after which listening stops and transcriptions starts
 input_limit = 20  # the maximum number of seconds that can be listened to in one go
-
-[voices]
-english = "en-GB-Neural2-B"
-french = "fr-FR-Neural2-C"
-german = "de-DE-Neural2-B"
-spanish = "es-ES-Neural2-B"
-russian = "ru-RU-Wavenet-B"
+model = "tts-1-hd" # See https://platform.openai.com/docs/models/tts for available models
+voice = "onyx" # See https://platform.openai.com/docs/guides/text-to-speech/voice-options for available voices
 
 [conversations]
 data_folder = "./data/"

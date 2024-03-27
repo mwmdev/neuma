@@ -307,11 +307,7 @@ The user and assistant messages are optional, but help with accuracy. You can ad
 
 ### Voice output
 
-Voice output languages are defined in `config.toml`, here's a [list of supported voices](https://cloud.google.com/text-to-speech/docs/voices).
-
-`l` : List available languages for voice output
-
-`l [language]` : Set language to [language]
+Voice output voice is defined in `config.toml`, here's a [list of supported voices](https://platform.openai.com/docs/guides/text-to-speech/voice-options).
 
 `vo` : Toggle voice output
 
@@ -330,6 +326,7 @@ You can list available microphones with `lm` and set the one you want to use in 
 input_device = 4 # the device for voice input (list devices with "lm")
 input_timeout = 5 # the number of seconds after which listening stops and transcription starts
 input_limit = 20 # the maximum number of seconds that can be listened to in one go
+...
 ```
 
 ### Special placeholders
@@ -352,23 +349,29 @@ __Note__: This can highly increase the number of tokens, use with caution. For l
 
 Embeddings allow you to embed documents into the discussion to serve as context for the answers.
  
-Supported file formats: csv, doc, docx, epub, html, md, odt, pdf, ppt, pptx, txt
-
 `d` : List all available vector dbs
 
 `d [db]` : Create or switch to [db] vector db
 
 `dt [db]` : Trash [db] vector db (will delete all files and folders related to this vector db)
 
-`e [/path/to/file]` : Embed [/path/to/file/] and store in current vector db
+`e [/path/to/files]` : Embed all files in `/path/to/files/` and store them in the current vector db
 
-So, to chat with a document you can do the following :
+So, to chat with documents you can do the following :
 
-- Create a persona with a profile that restricts answers to the context, like `"You will only answer a question if it can be determined from the context provided."`
-- Switch to that persona 
-- Create a vector db
-- Embed a document
-- Ask a question about it
+- Create a persona with a profile that restricts answers to the context, here's an example:
+```
+[[persona]]
+name = "docs"
+temp = 0.2
+[[persona.messages]]
+role = "system"
+content = "Answer the question based only on the following context: \n\n {context} \n\n---\n\n Answer the question based on the above context: "
+```
+- Switch to that persona with `p docs`
+- Create a vector db with `d mydb`
+- Embed the documents with `e /path/to/files`
+- Ask a question
 
 ### GPT models
 
