@@ -18,8 +18,7 @@ fi
 echo "Starting neuma installation script"
 
 # Clone the repository
-echo "- Cloning the repository into ./neuma/"
-#git clone -q https://github.com/mwmdev/neuma.git
+echo "- Cloning repository into ./neuma/"
 git clone -q https://github.com/mwmdev/neuma.git
 sleep 8
 
@@ -27,18 +26,16 @@ sleep 8
 cd ./neuma
 
 # Create a python virtual environment
-echo "- Creating a python virtual environment"
-#virtualenv -q -p python3 env
+echo "- Creating virtual environment"
 virtualenv -q -p python3 env
 sleep 5
 
 # Activate the virtual environment
-echo "- Activating the virtual environment"
+echo "- Activating virtual environment"
 source ./env/bin/activate
 
 # Install required dependencies
 echo "- Installing required dependencies"
-#pip install -q -r requirements.txt
 pip install -q -r requirements.txt
 
 # Rename .env_example to .env
