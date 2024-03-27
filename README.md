@@ -24,7 +24,7 @@ You can launch the install script with the following command:
 ```shell
 bash <(wget -qO- https://raw.githubusercontent.com/mwmdev/neuma/main/install.sh)
 ```
-During the installation process you will be prompted for your  [ChatGPT API key](https://platform.openai.com/account/api-keys) and your [Google Application Default Credentials](https://cloud.google.com/docs/authentication/provide-credentials-adc) (for voice output). You can also skip those steps and add them later.
+During the installation process you will be prompted for your  [ChatGPT API key](https://platform.openai.com/account/api-keys).
 
 ### Manual install
 
@@ -53,7 +53,6 @@ mv .env_example .env
 ```
 
 Edit `.env` and add your  [ChatGPT API key](https://platform.openai.com/account/api-keys).
-For voice output you also need [Google Application Default Credentials](https://cloud.google.com/docs/authentication/provide-credentials-adc).
 
 Move all config files to your `.config/neuma/` folder with:
 

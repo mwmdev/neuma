@@ -48,15 +48,6 @@ else
   echo "OPENAI_API_KEY=\"$openai_api_key\"" > .env
 fi
 
-# Prompt for Google Application Credentials
-read -p "- Enter the path to your Google Application Credentials .json file (Press Enter to skip): " google_application_credentials
-if [ -z "$google_application_credentials" ]; then
-  echo "- Skipping Google Application Credentials, you can enter it manually in ~/.config/neuma/.env"
-  echo "GOOGLE_APPLICATION_CREDENTIALS=\"\"" >> .env
-else
-  echo "GOOGLE_APPLICATION_CREDENTIALS=\"$google_application_credentials\"" >> .env
-fi
-
 # Move config files to the ~/.config/neuma/ folder
 echo "- Moving default config files to ~/.config/neuma/"
 mkdir -p ~/.config/neuma

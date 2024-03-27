@@ -4,7 +4,7 @@ import shutil  # For IO
 import subprocess  # For IO
 import openai
 from openai import OpenAI  # The good stuff
-import pyaudio
+# import pyaudio
 import time  # For logging
 from time import sleep  # Zzz
 import toml  # For parsing settings
@@ -23,9 +23,6 @@ import argparse  # For parsing command line arguments
 import threading
 import speech_recognition
 import sounddevice
-
-# Voice output
-# from google.cloud import texttospeech
 
 # Document loaders
 from langchain_community.document_loaders import DirectoryLoader
@@ -116,12 +113,6 @@ class ChatModel:
                 openai_api_key = env["OPENAI_API_KEY"]
                 if openai_api_key:
                     config["openai"]["api_key"] = openai_api_key
-                # Google app
-                google_app_api_key = env["GOOGLE_APPLICATION_CREDENTIALS"]
-                if google_app_api_key:
-                    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = google_app_api_key
-                else:
-                    raise ValueError("No API key found.")
 
         except Exception as e:
             raise ValueError("Error loading API key.")
