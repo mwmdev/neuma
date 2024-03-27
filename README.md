@@ -17,7 +17,7 @@
 
 Those instructions are for Linux, they may vary for other systems.
 
-### One line install
+### One line install script
 
 You can launch the install script with the following command:
 
@@ -38,6 +38,18 @@ Navigate to the directory where the repository was cloned:
 
 ```shell
 cd neuma
+```
+
+Create a virtual environment with:
+
+```shell
+python -m venv env
+```
+
+Activate the virtual environment with:
+
+```shell
+source env/bin/activate
 ```
 
 Install the required dependencies by running:
