@@ -871,18 +871,23 @@ class ChatController:
         parser.add_argument("-i", "--input", help="Input prompt")
         parser.add_argument("-p", "--persona", help="Set persona")
         parser.add_argument("-m", "--mode", help="Set mode")
+        parser.add_argument("-d", "--db", help="Set vector db")
         parser.add_argument("-t", "--temp", help="Set temperature")
 
         # Parse the command line arguments
         args = parser.parse_args()
 
-        # Set personae
-        if args.personae:
-            self.chat_model.set_persona(args.personae)
+        # Set persona
+        if args.persona:
+            self.chat_model.set_persona(args.persona)
 
         # Set mode
         if args.mode:
             self.chat_model.set_mode(args.mode)
+
+        # Set vector db
+        if args.db:
+            self.chat_model.set_vector_db(args.db)
 
         # Set temperature
         if args.temp:
@@ -1390,7 +1395,6 @@ def main():
 
     # Start the controller
     chat_controller.start()
-
 
 if __name__ == "__main__":
     main()
