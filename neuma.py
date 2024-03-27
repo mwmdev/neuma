@@ -208,7 +208,7 @@ class ChatModel:
         model = self.config["openai"]["model"]
         self.logger.info("model: {}".format(model))
 
-        temperature = self.config["openai"]["temperature"]
+        temperature = self.get_persona_temperature(self.persona)
         self.logger.info("temperature: {}".format(temperature))
 
         top_p = self.config["openai"]["top_p"]
