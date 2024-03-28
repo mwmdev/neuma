@@ -47,4 +47,4 @@ prompt = "#928374"  # grey
 answer = "#83a598"  # blue
 
 [debug]
-logging = true
+logging = false
