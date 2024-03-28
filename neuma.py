@@ -1372,6 +1372,8 @@ class ChatController:
         # Image generation
         elif command.startswith("i "):
             image_path = self.chat_model.config["images"]["path"]
+            if not os.path.exists(image_path):
+                os.makedirs(image_path)
             image_prompt = command.split(" ", 1)[1]
 
             with self.chat_view.console.status(""):
