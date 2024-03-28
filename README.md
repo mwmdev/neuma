@@ -398,7 +398,7 @@ content = "Answer the question based only on the following context: \n\n {contex
  
 ### Image generation
 
-You can generate images by using the `i` followed by a prompt.
+You can generate images by using `i` followed by a prompt.
 
 Example:
 
