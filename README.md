@@ -4,6 +4,32 @@
 
 ![render1682022113695](https://user-images.githubusercontent.com/31964517/233479690-81521ceb-2443-4a0e-ab1f-0b0b100a75db.gif)
 
+## Table of contents
+- [Features](#features)
+- [Installation](#installation)
+  - [One line install script](#one-line-install-script)
+  - [Manual install](#manual-install)
+  - [Alias shortcut](#alias-shortcut)
+- [Usage](#usage)
+  - [Conversations](#conversations)
+  - [Modes](#modes)
+    - [Table display](#table-display)
+    - [Code generator](#code-generator)
+    - [Translator](#translator)
+    - [Character impersonator](#character-impersonator)
+    - [CSV generator](#csv-generator)
+  - [Personae](#personae)
+  - [Speech support](#speech-support)
+    - [Voice output](#voice-output)
+    - [Voice input](#voice-input)
+  - [Embeddings](#embeddings)
+  - [Special placeholders](#special-placeholders)
+  - [GPT models](#gpt-models)
+  - [Other commands](#other-commands)
+  - [Command line arguments](#command-line-arguments)
+  - [Color theme](#color-theme)
+- [What's in a name?](#whats-in-a-name)
+
 ## Features
 
 - **Conversations** management (create, save, copy, delete)
@@ -78,7 +104,7 @@ Finally, run the script with:
 python neuma.py
 ```
 
-### Create an alias
+### Alias shortcut
 
 To make it easier to run `neuma`, you can create an alias in your `.bashrc` or `.zshrc` file by adding the following line:
 
@@ -316,13 +342,15 @@ To add new personae, copy paste the default persona and give it a new name, then
 
 The user and assistant messages are optional, but help with accuracy. You can add as many user/assistant messages as you like (increases token count).
 
-### Voice output
+### Speech support
+
+#### Voice output
 
 Voice output voice is defined in `config.toml`, here's a [list of supported voices](https://platform.openai.com/docs/guides/text-to-speech/voice-options).
 
 `vo` : Toggle voice output
 
-### Voice input
+#### Voice input
 
 Voice input can be used to transcribe voice to text.
 
@@ -339,23 +367,6 @@ input_timeout = 5 # the number of seconds after which listening stops and transc
 input_limit = 20 # the maximum number of seconds that can be listened to in one go
 ...
 ```
-
-### Special placeholders
-
-Use the `~{f:` `}~` notation to insert the content of a file into the prompt.
-
-```
-> Refactor the following code : ~{f:example.py}~
-```
-
-Use the `~{w:` `}~` notation to insert the content of a URL into the prompt.
-
-```
-> Summarize the following article : ~{w:https://www.freethink.com/health/lsd-mindmed-phase-2}~
-```
-
-__Note__: This can highly increase the number of tokens, use with caution. For large content use embeddings instead.
-
 ### Embeddings
 
 Embeddings allow you to embed documents into the discussion to serve as context for the answers.
@@ -383,6 +394,22 @@ content = "Answer the question based only on the following context: \n\n {contex
 - Create a vector db with `d mydb`
 - Embed the documents with `e /path/to/files`
 - Ask a question
+ 
+### Special placeholders
+
+Use the `~{f:` `}~` notation to insert the content of a file into the prompt.
+
+```
+> Refactor the following code : ~{f:example.py}~
+```
+
+Use the `~{w:` `}~` notation to insert the content of a URL into the prompt.
+
+```
+> Summarize the following article : ~{w:https://www.freethink.com/health/lsd-mindmed-phase-2}~
+```
+
+__Note__: This can highly increase the number of tokens, use with caution. For large content use embeddings instead.
 
 ### GPT models
 
