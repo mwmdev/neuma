@@ -679,6 +679,8 @@ class ChatModel:
     # Get vector dbs
     def get_vector_dbs(self) -> list:
         persist_folder = self.config["vector_db"]["persist_folder"]
+        if not os.path.exists(persist_folder):
+            os.mkdir(persist_folder)
         return os.listdir(persist_folder)
 
     # Get vector db
