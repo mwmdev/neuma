@@ -1,4 +1,6 @@
 import os  # For IO
+from io import BytesIO
+import base64
 import sys  # For IO
 import shutil  # For IO
 import subprocess  # For IO
@@ -6,6 +8,7 @@ import openai
 from openai import OpenAI  # The good stuff
 # import pyaudio
 import time  # For logging
+from datetime import datetime
 from time import sleep  # Zzz
 import toml  # For parsing settings
 import logging  # For logging
@@ -41,6 +44,11 @@ from langchain.vectorstores.chroma import Chroma
 
 # Memory
 from langchain.memory import ConversationBufferMemory
+
+# Image
+from PIL import Image
+from slugify import slugify
+# import unicode
 
 # Chat models
 # from langchain.chat_models import ChatOpenAI
@@ -717,6 +725,23 @@ class ChatModel:
 
         return True
 
+    # Image generation
+    def generate_image(self, prompt: str) -> str | Exception:
+        try:
+            response = self.client.images.generate(
+                model=self.config["images"]["model"],
+                prompt=prompt,
+                size=self.config["images"]["size"],
+                quality=self.config["images"]["quality"],
+                n=1,
+                response_format="b64_json"
+            )
+            image_raw_data = response.data[0].b64_json
+            return image_raw_data
+        except Exception as e:
+            self.logger.exception(e)
+            return e
+
     # Other settings
 
     # Copy to clipboard
@@ -1340,6 +1365,27 @@ class ChatController:
                     self.chat_view.display_message(
                         "Error saving chunks to db: {}".format(e), "error"
                     )
+
+        # Image generation
+        elif command.startswith("i "):
+            image_path = self.chat_model.config["images"]["path"]
+            image_prompt = command.split(" ", 1)[1]
+
+            with self.chat_view.console.status(""):
+
+                try:
+                    image_raw_data = self.chat_model.generate_image(image_prompt)
+                    image_obj = Image.open(BytesIO(base64.b64decode(image_raw_data)))
+                    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+                    image_file = slugify(image_prompt) + "-" + timestamp + ".png"
+                    image_fullpath = image_path + image_file
+                    image_obj.save(image_fullpath)
+                    self.chat_view.display_message("Image generated and saved to : {}".format(image_fullpath), "success")
+                    if self.chat_model.config["images"]["open"]:
+                        open_command = self.chat_model.config["images"]["open_command"]
+                        os.system(open_command + " " + image_fullpath)
+                except Exception as e:
+                    self.chat_view.display_message("Error generating image: {}".format(e), "error")
 
         # Normal prompt
         else:

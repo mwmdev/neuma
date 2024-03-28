@@ -23,6 +23,7 @@
     - [Voice output](#voice-output)
     - [Voice input](#voice-input)
   - [Embeddings](#embeddings)
+  - [Image generation](#image-generation)
   - [Special placeholders](#special-placeholders)
   - [GPT models](#gpt-models)
   - [Other commands](#other-commands)
@@ -323,7 +324,7 @@ Personae are profiles defined by a specific starting prompt and temperature, the
 
 The default persona has this starting prompt :
 
-```
+```toml
 [[persona]]
 name = "default"
 temp = 0.5
@@ -360,7 +361,7 @@ Saying "Disable voice input" will switch back to text input mode.
 
 You can list available microphones with `lm` and set the one you want to use in the `audio` section of the config file.
 
-```
+```toml
 [audio]
 input_device = 4 # the device for voice input (list devices with "lm")
 input_timeout = 5 # the number of seconds after which listening stops and transcription starts
@@ -382,7 +383,7 @@ Embeddings allow you to embed documents into the discussion to serve as context 
 So, to chat with documents you can do the following :
 
 - Create a persona with a profile that restricts answers to the context, here's an example:
-```
+```toml
 [[persona]]
 name = "docs"
 temp = 0.2
@@ -395,6 +396,36 @@ content = "Answer the question based only on the following context: \n\n {contex
 - Embed the documents with `e /path/to/files`
 - Ask a question
  
+### Image generation
+
+You can generate images by using the `i` followed by a prompt.
+
+Example:
+
+```
+> i a peaceful lake scenery
+```
+
+Output:
+
+```
+ Image generated and saved to : ./img/a-peaceful-lake-scenery-20240328175639.png
+```
+
+<img style="width: 50%;margin:40px auto;" alt = "" title = "" src = "public/a-peaceful-lake-scenery-20240328175639.png"/>
+
+Image settings are available in the `config.toml` file :
+
+```toml
+[images]
+model = "dall-e-3" # either "dall-e-2" or "dall-e-3"
+size = "1024x1024" # for available sizes see https://platform.openai.com/docs/api-reference/images/create 
+quality = "standard" # either "standard" or "hd" (only for "dall-e-3")
+path = "./img/" # path to save the generated images
+open = false # open the generated image automatically 
+open_command = "feh" # the command to open the image
+```
+
 ### Special placeholders
 
 Use the `~{f:` `}~` notation to insert the content of a file into the prompt.

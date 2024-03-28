@@ -5,7 +5,7 @@ max_tokens = 2048
 
 [audio]
 input_device = 6  # the device for voice input (list devices with "lm")
-input_timeout = 5 # the number of seconds after which listening stops and transcriptions starts
+input_timeout = 5 # the number of seconds of silence after which listening stops and transcriptions starts
 input_limit = 20  # the maximum number of seconds that can be listened to in one go
 model = "tts-1-hd" # See https://platform.openai.com/docs/models/tts for available models
 voice = "onyx" # See https://platform.openai.com/docs/guides/text-to-speech/voice-options for available voices
@@ -29,6 +29,14 @@ model = "text-embedding-ada-002"
 persist_folder = "./db"
 default = "docs"
 
+[images]
+model = "dall-e-3"
+size = "1024x1024"
+quality = "standard"
+path = "./img/"
+open = false
+open_command = "feh"
+
 [theme]
 section = "#d3869b" # pink
 info = "#8ec07c"    # aqua
@@ -39,4 +47,4 @@ prompt = "#928374"  # grey
 answer = "#83a598"  # blue
 
 [debug]
-logging = false
+logging = true
