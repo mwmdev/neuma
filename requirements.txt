@@ -11,3 +11,7 @@ rich==13.7.1
 sounddevice==0.4.6
 SpeechRecognition==3.10.0
 toml==0.10.2
+python-slugify==8.0.4
+pillow==10.2.0
+unicode==2.9
+
