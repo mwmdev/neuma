@@ -144,6 +144,7 @@ Press `h` followed by `Enter` to list all the commands.
 │ d [db]            │ Create or switch to vector db [db]              │
 │ dt [db]           │ Trash vector db [db]                            │
 │ e [/path/to/file] │ Embed [/path/to/file] document into current db  │
+│ i [prompt]        │ Generate an image from [prompt]                   │
 │ y                 │ Copy last answer to clipboard                   │
 │ t                 │ Get the current temperature                     │
 │ t [temp]          │ Set the temperature to [temp]                   │

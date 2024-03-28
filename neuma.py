@@ -818,6 +818,7 @@ class ChatView:
         help_table.add_row("d \[db]", "Create or switch to vector db \[db]")
         help_table.add_row("dt \[db]", "Trash vector db \[db]")
         help_table.add_row("y", "Copy last answer to clipboard")
+        help_table.add_row("i \[prompt]", "Generate an image from \[prompt]")
         help_table.add_row("t", "Get the current temperature value")
         help_table.add_row("t \[temp]", "Set the temperature to \[temp]")
         help_table.add_row("tp", "Get the current top_p value")
