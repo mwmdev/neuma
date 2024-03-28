@@ -490,3 +490,7 @@ Examples :
 ## Color theme
 
 The colors of each type of text (prompt, answer, info msg, etc.) are defined in the `config.toml` file (default is [gruvbox](https://github.com/morhetz/gruvbox)).
+
+## What's in a name?
+
+`neuma` is derived from the greek `πνεῦμα` meaning _breath_ or _spirit_.
