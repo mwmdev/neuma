@@ -521,7 +521,7 @@ options:
 Examples :
 
 ```
-> python neuma.py -t 1.2 -i "Write a haiku about the moon"`
+> python neuma.py -t 1.2 -i "Write a haiku about the moon"
   
   Silver orb casts light,
   Guiding night journeys below
@@ -529,7 +529,7 @@ Examples :
 ```
 
 ```
-> python neuma.py -t 0 -m "table" -i "Five US National parks by : name, size, climate"`
+> python neuma.py -t 0 -m "table" -i "Five US National parks by : name, size, climate"
 
   ┏━━┳━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━┓
   ┃  ┃  National Park     ┃  Size (acres)  ┃  Climate                  ┃  ┃
@@ -543,7 +543,7 @@ Examples :
   │  │  Glacier           │  1,013,125     │  Continental              │  │
   ├──┼────────────────────┼────────────────┼───────────────────────────┼──┤
   │  │  Rocky Mountain    │  265,807       │  Alpine                   │  │
-  └──┴────────────────────┴────────────────┴───────────────────────────┴──┘`
+  └──┴────────────────────┴────────────────┴───────────────────────────┴──┘
 ```
 
 ## Color theme
