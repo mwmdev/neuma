@@ -35,7 +35,7 @@
 ## Features
 
 - **Conversations** management (create, save, copy, delete)
-- **Modes** (normal, table, code, translate, impersonate, summarize, csv, image)
+- **Modes** (normal, table, code, translate, impersonate, summarize, csv, image, terminal)
 - **Personae** profiles with custom starting prompt
 - **Embeddings** management (embed documents, create vector dbs)
 - **Voice input / output**
@@ -56,7 +56,9 @@ During the installation process you will be prompted for your  [ChatGPT API key]
 
 ### Manual install
 
-Clone this repository to your local machine using the following command:
+If you prefer manual install, do the following:
+
+Clone this repository to your local machine using:
 
 ```shell
 git clone https://github.com/mwmdev/neuma.git
@@ -111,7 +113,7 @@ python neuma.py
 To make it easier to run `neuma`, you can create an alias in your `.bashrc` or `.zshrc` file by adding the following line:
 
 ```
-alias n='source /path/to/neuma/env/bin/activate && python /path/to/neuma.py'*
+alias n='source /path/to/neuma/env/bin/activate && python /path/to/neuma.py'
 ```
 
 ## Usage
@@ -126,7 +128,7 @@ Press `h` followed by `Enter` to list all the commands.
 │ Command           │ Description                                     │
 ├───────────────────┼─────────────────────────────────────────────────┤
 │ h                 │ Display this help section                       │
-│ r                 │ Restart application                             │
+│ r                 │ Restart                                         │
 │ c                 │ List saved conversations                        │
 │ c [conversation]  │ Open conversation [conversation]                │
 │ cc                │ Create a new conversation                       │
@@ -137,8 +139,6 @@ Press `h` followed by `Enter` to list all the commands.
 │ m [mode]          │ Switch to mode [mode]                           │
 │ p                 │ List available personae                         │
 │ p [persona]       │ Switch to persona [persona]                     │
-│ l                 │ List available languages                        │
-│ l [language]      │ Set language to [language]                      │
 │ vi                │ Switch to voice input                           │
 │ vo                │ Switch on voice output                          │
 │ d                 │ List available vector dbs                       │
@@ -372,6 +372,8 @@ python ../neuma.py -m term -i "resize all jpg images in this folder to 1600x900"
 mogrify -resize 1600x900 *.jpg
 ```
 
+You can then copy-paste the command into your terminal and run it (use with caution!).
+
 ### Personae
 
 Personae are profiles defined by a specific starting prompt and temperature, they are configured in the `personae.toml` file.
@@ -401,11 +403,38 @@ To add new personae, copy paste the default persona and give it a new name, then
 
 The user and assistant messages are optional, but help with accuracy. You can add as many user/assistant messages as you like (increases token count).
 
+Here are some examples of personae :
+
+```toml
+[[persona]]
+name = "teacher"
+temp = 0.5
+[[persona.messages]]
+role = "system"
+content = "Teach me how # works by asking questions about my level of understanding of necessary concepts. With each response, fill in gaps in my understanding, then recursively ask me more questions to check my understanding."
+```
+
+```toml
+[[persona]]
+name = "handyman"
+temp = 0.65
+voice_name = "en-GB-Neural2-B"
+[[persona.messages]]
+role = "system"
+content = "You are a helpful handyman and a DIY expert. You will teach me to complete simple home improvementand maintenance projects using lists of necessary tools and simple step by step instructions."
+[[persona.messages]]
+role = "user"
+content = "My lightbulb is broken."
+[[persona.messages]]
+role = "assistant"
+content = "I can help you replace your lightbulb. You will need : a ladder, a new lightbulb, and a screwdriver. 1. First, turn off the light switch. For more security you can also turn off the electricity at the circuit breaker. 2. Then, climb the ladder and unscrew the lightbulb. 3. Finally, screw in the new lightbulb and turn the light switch back on."
+```
+
 ### Speech support
 
 #### Voice output
 
-Voice output voice is defined in `config.toml`, here's a [list of supported voices](https://platform.openai.com/docs/guides/text-to-speech/voice-options).
+Voice is defined in `config.toml`, here's a [list of supported voices](https://platform.openai.com/docs/guides/text-to-speech/voice-options).
 
 `vo` : Toggle voice output
 
@@ -415,7 +444,7 @@ Voice input can be used to transcribe voice to text.
 
 `vi` :  Switch to voice input
 
-Saying "Disable voice input" will switch back to text input mode.
+Saying "_Disable voice input_" will switch back to text input mode.
 
 You can list available microphones with `lm` and set the one you want to use in the `audio` section of the config file.
 
@@ -456,7 +485,7 @@ content = "Answer the question based only on the following context: \n\n {contex
 
 ### Special placeholders
 
-Use the `~{f:` `}~` notation to insert the content of a file into the prompt.
+You can also reference documents directly (without embedding), using the `~{f:` `}~` notation.
 
 ```
 > Refactor the following code : ~{f:example.py}~
@@ -580,7 +609,18 @@ Image generated and saved to : ./img/escher-s-lost-masterpiece-20240411203242.pn
 
 ## Color theme
 
-The colors of each type of text (prompt, answer, info msg, etc.) are defined in the `config.toml` file (default is [gruvbox](https://github.com/morhetz/gruvbox)).
+The colors of each type of text (prompt, answer, info msg, etc.) are defined in the `config.toml` file (default is [gruvbox](https://github.com/morhetz/gruvbox) dark).
+
+```toml
+[theme]
+section = "#d3869b" # pink
+info = "#8ec07c"    # aqua
+success = "#b8bb26" # green
+warning = "#fabd2f" # yellow
+error = "#fb4934"   # red
+prompt = "#928374"  # grey
+answer = "#83a598"  # blue
+```
 
 ## What's in a name?
 

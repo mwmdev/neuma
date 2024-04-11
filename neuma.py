@@ -825,7 +825,7 @@ class ChatView:
         help_table.add_column("Command", max_width=20)
         help_table.add_column("Description")
         help_table.add_row("h", "Display this help section")
-        help_table.add_row("r", "Restart application")
+        help_table.add_row("r", "Restart")
         help_table.add_row("c", "List saved conversations")
         help_table.add_row("c \[conversation]", "Open conversation \[conversation]")
         help_table.add_row("cc", "Create a new conversation")
