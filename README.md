@@ -546,6 +546,11 @@ Examples :
   └──┴────────────────────┴────────────────┴───────────────────────────┴──┘
 ```
 
+```
+python neuma.py -m img -i "Escher's lost masterpiece"
+Image generated and saved to : ./img/escher-s-lost-masterpiece-20240411203242.png
+```
+
 ## Color theme
 
 The colors of each type of text (prompt, answer, info msg, etc.) are defined in the `config.toml` file (default is [gruvbox](https://github.com/morhetz/gruvbox)).
