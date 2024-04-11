@@ -21,6 +21,7 @@ trans = "Translate this into # : "
 char = "Imagine you are writing a novel about #. I want you to respond and answer like # using the tone, manner and vocabulary # would use. Do not write any explanations. Only answer like #. You must know all of the knowledge of #. My first question is : "
 sum = "Summarize this and display it in a list of bullet points : "
 csv = "Using '#' as a separator, print a CSV list of : "
+img = ""
 
 [embeddings]
 model = "text-embedding-ada-002"
@@ -32,9 +33,9 @@ default = "docs"
 [images]
 model = "dall-e-3"
 size = "1024x1024"
-quality = "standard"
+quality = "hd"
 path = "./img/"
-open = false
+open = true
 open_command = "feh"
 
 [theme]

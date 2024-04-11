@@ -213,127 +213,152 @@ class ChatModel:
         api_key = self.config["openai"]["api_key"]
         self.logger.info("api_key: {}".format(api_key))
 
-        model = self.config["openai"]["model"]
-        self.logger.info("model: {}".format(model))
+        # Image mode
+        if self.mode == "img":
+            image_path = self.config["images"]["path"]
 
-        temperature = self.get_persona_temperature(self.persona)
-        self.logger.info("temperature: {}".format(temperature))
+            if not os.path.exists(image_path):
+                os.makedirs(image_path)
 
-        top_p = self.config["openai"]["top_p"]
-        self.logger.info("top_p: {}".format(top_p))
-
-        max_tokens = self.config["openai"]["max_tokens"]
-        self.logger.info("max_tokens: {}".format(max_tokens))
-
-        # Vector DB query
-        if self.vector_db != "":
-            self.logger.info("type of query: vector db")
+            image_prompt = messages[-1]["content"]
 
             try:
-                with get_openai_callback() as callback:
-
-                    vector_db_name = self.vector_db
-                    self.logger.info("vector_db_name: {}".format(vector_db_name))
-
-                    persist_folder = self.config["vector_db"]["persist_folder"]
-                    self.logger.info("persist_folder: {}".format(persist_folder))
-
-                    full_path = os.path.join(persist_folder, vector_db_name)
-                    self.logger.info("full_path: {}".format(full_path))
-
-                    # Embeddings
-                    embeddings = OpenAIEmbeddings(
-                        openai_api_key=os.environ["OPENAI_API_KEY"],
-                        model=self.config["embeddings"]["model"],
-                    )
-
-                    # Vector store
-                    full_path = os.path.join(persist_folder, vector_db_name)
-                    vector_db = Chroma(
-                        persist_directory=full_path,
-                        embedding_function=embeddings
-                    )
-
-                    # Search the DB.
-                    self.logger.info("prompt: {}".format(prompt))
-                    results = vector_db.similarity_search_with_relevance_scores(
-                        prompt,
-                        k=4,
-                        # score_threshold=0.8
-                    )
-                    self.logger.info("results: {}".format(results))
-
-                    context_text = "\n\n---\n\n".join([doc.page_content for doc, _score in results])
-                    prompt = prompt.replace("{context}", context_text)
-
-                    model = ChatOpenAI()
-                    response = model.invoke(prompt)
-
-                    sources = [doc.metadata.get("source", None) for doc, _score in results]
-                    sources_text = "\n"
-                    sources = list(set(sources))
-                    for i, source in enumerate(sources):
-                        source = source.split("/")[-1]
-                        sources_text += "\n:left_arrow_curving_right: " + source + "\n"
-                    sources_text = sources_text.strip()
-
-                    formatted_response = f"{response.content}\n{sources_text}"
-
-                    response_data = {
-                        "id": "",
-                        "created": "",
-                        "status": "success",
-                        "message": formatted_response,
-                        "promptTokens": callback.prompt_tokens,
-                        "completionTokens": callback.completion_tokens,
-                        "totalTokens": callback.total_tokens,
-                    }
-                    self.logger.info("response_data: {}".format(response_data))
-                    self.logger.info("Total tokens: {}".format(callback.total_tokens))
-
+                image_raw_data = self.generate_image(image_prompt)
+                image_obj = Image.open(BytesIO(base64.b64decode(image_raw_data)))
+                timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+                image_file = slugify(image_prompt) + "-" + timestamp + ".png"
+                image_fullpath = image_path + image_file
+                image_obj.save(image_fullpath)
+                if self.config["images"]["open"]:
+                    open_command = self.config["images"]["open_command"]
+                    os.system(open_command + " " + image_fullpath)
+                response_data = {"message": "Image generated and saved to : {}".format(image_fullpath)}
             except Exception as e:
-                self.logger.exception(e)
+                self.logger.error("Error generating image: {}".format(e))
 
-        # Normal query
         else:
-            self.logger.info("type of query: default")
 
-            llm = ChatOpenAI(
-                openai_api_key=os.environ["OPENAI_API_KEY"],
-                model_name=model,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                # top_p=top_p,
-            )
-            try:
-                with get_openai_callback() as callback:
-                    chat_completions = self.client.chat.completions.create(
-                        model=model,
-                        messages=messages,
-                        temperature=temperature,
-                        # top_p=top_p
-                    )
-                    response = chat_completions.choices[0].message.content
-                    response_data = {
-                        "id": "",
-                        "created": "",
-                        "status": "success",
-                        "message": response,
-                        "promptTokens": callback.prompt_tokens,
-                        "completionTokens": callback.completion_tokens,
-                        "totalTokens": callback.total_tokens,
-                        # 'sourceDocuments': response['source_documents'][0],
-                    }
-                    self.logger.info("response_data: {}".format(response_data))
-                    self.logger.info("Total tokens: {}".format(callback.total_tokens))
+            model = self.config["openai"]["model"]
+            self.logger.info("model: {}".format(model))
 
-                    # Add to conversation (only in normal chat)
-                    response_message = {"role": "assistant", "content": response_data["message"]}
-                    self.conversation.append(response_message)
+            temperature = self.get_persona_temperature(self.persona)
+            self.logger.info("temperature: {}".format(temperature))
+
+            top_p = self.config["openai"]["top_p"]
+            self.logger.info("top_p: {}".format(top_p))
+
+            max_tokens = self.config["openai"]["max_tokens"]
+            self.logger.info("max_tokens: {}".format(max_tokens))
+
+            # Vector DB query
+            if self.vector_db != "":
+                self.logger.info("type of query: vector db")
+
+                try:
+                    with get_openai_callback() as callback:
+
+                        vector_db_name = self.vector_db
+                        self.logger.info("vector_db_name: {}".format(vector_db_name))
+
+                        persist_folder = self.config["vector_db"]["persist_folder"]
+                        self.logger.info("persist_folder: {}".format(persist_folder))
+
+                        full_path = os.path.join(persist_folder, vector_db_name)
+                        self.logger.info("full_path: {}".format(full_path))
+
+                        # Embeddings
+                        embeddings = OpenAIEmbeddings(
+                            openai_api_key=os.environ["OPENAI_API_KEY"],
+                            model=self.config["embeddings"]["model"],
+                        )
+
+                        # Vector store
+                        full_path = os.path.join(persist_folder, vector_db_name)
+                        vector_db = Chroma(
+                            persist_directory=full_path,
+                            embedding_function=embeddings
+                        )
+
+                        # Search the DB.
+                        self.logger.info("prompt: {}".format(prompt))
+                        results = vector_db.similarity_search_with_relevance_scores(
+                            prompt,
+                            k=4,
+                            # score_threshold=0.8
+                        )
+                        self.logger.info("results: {}".format(results))
+
+                        context_text = "\n\n---\n\n".join([doc.page_content for doc, _score in results])
+                        prompt = prompt.replace("{context}", context_text)
+
+                        model = ChatOpenAI()
+                        response = model.invoke(prompt)
+
+                        sources = [doc.metadata.get("source", None) for doc, _score in results]
+                        sources_text = "\n"
+                        sources = list(set(sources))
+                        for i, source in enumerate(sources):
+                            source = source.split("/")[-1]
+                            sources_text += "\n:left_arrow_curving_right: " + source + "\n"
+                        sources_text = sources_text.strip()
+
+                        formatted_response = f"{response.content}\n{sources_text}"
+
+                        response_data = {
+                            "id": "",
+                            "created": "",
+                            "status": "success",
+                            "message": formatted_response,
+                            "promptTokens": callback.prompt_tokens,
+                            "completionTokens": callback.completion_tokens,
+                            "totalTokens": callback.total_tokens,
+                        }
+                        self.logger.info("response_data: {}".format(response_data))
+                        self.logger.info("Total tokens: {}".format(callback.total_tokens))
+
+                except Exception as e:
+                    self.logger.exception(e)
+
+            # Normal query
+            else:
+                self.logger.info("type of query: default")
+
+                llm = ChatOpenAI(
+                    openai_api_key=os.environ["OPENAI_API_KEY"],
+                    model_name=model,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    # top_p=top_p,
+                )
+                try:
+                    with get_openai_callback() as callback:
+                        chat_completions = self.client.chat.completions.create(
+                            model=model,
+                            messages=messages,
+                            temperature=temperature,
+                            # top_p=top_p
+                        )
+                        response = chat_completions.choices[0].message.content
+                        response_data = {
+                            "id": "",
+                            "created": "",
+                            "status": "success",
+                            "message": response,
+                            "promptTokens": callback.prompt_tokens,
+                            "completionTokens": callback.completion_tokens,
+                            "totalTokens": callback.total_tokens,
+                            # 'sourceDocuments': response['source_documents'][0],
+                        }
+                        self.logger.info("response_data: {}".format(response_data))
+                        self.logger.info("Total tokens: {}".format(callback.total_tokens))
+
+                        # Add to conversation (only in normal chat)
+                        response_message = {"role": "assistant", "content": response_data["message"]}
+                        self.conversation.append(response_message)
 
 
-            except Exception as e:
-                self.logger.exception(e)
+                except Exception as e:
+                    self.logger.exception(e)
 
         self.processed_response = self.process_response(response_data["message"])
 
@@ -820,7 +845,6 @@ class ChatView:
         help_table.add_row("d \[db]", "Create or switch to vector db \[db]")
         help_table.add_row("dt \[db]", "Trash vector db \[db]")
         help_table.add_row("y", "Copy last answer to clipboard")
-        help_table.add_row("i \[prompt]", "Generate an image from \[prompt]")
         help_table.add_row("t", "Get the current temperature value")
         help_table.add_row("t \[temp]", "Set the temperature to \[temp]")
         help_table.add_row("tp", "Get the current top_p value")
@@ -1368,29 +1392,6 @@ class ChatController:
                     self.chat_view.display_message(
                         "Error saving chunks to db: {}".format(e), "error"
                     )
-
-        # Image generation
-        elif command.startswith("i "):
-            image_path = self.chat_model.config["images"]["path"]
-            if not os.path.exists(image_path):
-                os.makedirs(image_path)
-            image_prompt = command.split(" ", 1)[1]
-
-            with self.chat_view.console.status(""):
-
-                try:
-                    image_raw_data = self.chat_model.generate_image(image_prompt)
-                    image_obj = Image.open(BytesIO(base64.b64decode(image_raw_data)))
-                    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-                    image_file = slugify(image_prompt) + "-" + timestamp + ".png"
-                    image_fullpath = image_path + image_file
-                    image_obj.save(image_fullpath)
-                    self.chat_view.display_message("Image generated and saved to : {}".format(image_fullpath), "success")
-                    if self.chat_model.config["images"]["open"]:
-                        open_command = self.chat_model.config["images"]["open_command"]
-                        os.system(open_command + " " + image_fullpath)
-                except Exception as e:
-                    self.chat_view.display_message("Error generating image: {}".format(e), "error")
 
         # Normal prompt
         else:

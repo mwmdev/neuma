@@ -18,12 +18,12 @@
     - [Translator](#translator)
     - [Character impersonator](#character-impersonator)
     - [CSV generator](#csv-generator)
+    - [Image generator](#image-generator)
   - [Personae](#personae)
   - [Speech support](#speech-support)
     - [Voice output](#voice-output)
     - [Voice input](#voice-input)
   - [Embeddings](#embeddings)
-  - [Image generation](#image-generation)
   - [Special placeholders](#special-placeholders)
   - [GPT models](#gpt-models)
   - [Other commands](#other-commands)
@@ -144,7 +144,6 @@ Press `h` followed by `Enter` to list all the commands.
 │ d [db]            │ Create or switch to vector db [db]              │
 │ dt [db]           │ Trash vector db [db]                            │
 │ e [/path/to/file] │ Embed [/path/to/file] document into current db  │
-│ i [prompt]        │ Generate an image from [prompt]                   │
 │ y                 │ Copy last answer to clipboard                   │
 │ t                 │ Get the current temperature                     │
 │ t [temp]          │ Set the temperature to [temp]                   │
@@ -315,6 +314,37 @@ Output:
   5; Esther Duflo; 2019; France; Development economics
 ```
 
+#### Image generator
+
+`m img`
+
+Generate images with `dall-e`
+
+Example:
+
+```
+> a peaceful lake scenery
+```
+
+Output:
+
+```
+ Image generated and saved to : ./img/a-peaceful-lake-scenery-20240328175639.png
+```
+
+<img style="width: 50%;margin:40px auto;" alt = "" title = "" src = "public/a-peaceful-lake-scenery-20240328175639.png"/>
+
+Image settings are available in the `config.toml` file :
+
+```toml
+[images]
+model = "dall-e-3" # either "dall-e-2" or "dall-e-3"
+size = "1024x1024" # for available sizes see https://platform.openai.com/docs/api-reference/images/create 
+quality = "standard" # either "standard" or "hd" (only for "dall-e-3")
+path = "./img/" # path to save the generated images
+open = false # open the generated image automatically 
+open_command = "feh" # the command to open the image
+```
 ### Personae
 
 Personae are profiles defined by a specific starting prompt and temperature, they are configured in the `personae.toml` file.
@@ -397,35 +427,6 @@ content = "Answer the question based only on the following context: \n\n {contex
 - Embed the documents with `e /path/to/files`
 - Ask a question
  
-### Image generation
-
-You can generate images by using `i` followed by a prompt.
-
-Example:
-
-```
-> i a peaceful lake scenery
-```
-
-Output:
-
-```
- Image generated and saved to : ./img/a-peaceful-lake-scenery-20240328175639.png
-```
-
-<img style="width: 50%;margin:40px auto;" alt = "" title = "" src = "public/a-peaceful-lake-scenery-20240328175639.png"/>
-
-Image settings are available in the `config.toml` file :
-
-```toml
-[images]
-model = "dall-e-3" # either "dall-e-2" or "dall-e-3"
-size = "1024x1024" # for available sizes see https://platform.openai.com/docs/api-reference/images/create 
-quality = "standard" # either "standard" or "hd" (only for "dall-e-3")
-path = "./img/" # path to save the generated images
-open = false # open the generated image automatically 
-open_command = "feh" # the command to open the image
-```
 
 ### Special placeholders
 
