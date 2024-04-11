@@ -93,7 +93,6 @@ class ChatModel:
         log = logging.getLogger("rich")
         if logging_status is not True:
             logging.disable(sys.maxsize)
-            print("Logging disabled")
         return log
 
     def get_config(self) -> dict:
