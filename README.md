@@ -397,7 +397,6 @@ You can list available microphones with `lm` and set the one you want to use in 
 input_device = 4 # the device for voice input (list devices with "lm")
 input_timeout = 5 # the number of seconds after which listening stops and transcription starts
 input_limit = 20 # the maximum number of seconds that can be listened to in one go
-...
 ```
 ### Embeddings
 
