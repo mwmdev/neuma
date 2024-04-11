@@ -22,6 +22,7 @@ char = "Imagine you are writing a novel about #. I want you to respond and answe
 sum = "Summarize this and display it in a list of bullet points : "
 csv = "Using '#' as a separator, print a CSV list of : "
 img = ""
+term = "You are in the terminal, output a command line command that does the following, just write the full one line command and nothing else : "
 
 [embeddings]
 model = "text-embedding-ada-002"

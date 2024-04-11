@@ -19,6 +19,7 @@
     - [Character impersonator](#character-impersonator)
     - [CSV generator](#csv-generator)
     - [Image generator](#image-generator)
+    - [Terminal commands generator](#terminal-commands-generator)
   - [Personae](#personae)
   - [Speech support](#speech-support)
     - [Voice output](#voice-output)
@@ -34,7 +35,7 @@
 ## Features
 
 - **Conversations** management (create, save, copy, delete)
-- **Modes** (normal, table, code, translate, impersonate, summarize, csv)
+- **Modes** (normal, table, code, translate, impersonate, summarize, csv, image)
 - **Personae** profiles with custom starting prompt
 - **Embeddings** management (embed documents, create vector dbs)
 - **Voice input / output**
@@ -345,6 +346,32 @@ path = "./img/" # path to save the generated images
 open = false # open the generated image automatically 
 open_command = "feh" # the command to open the image
 ```
+
+#### Terminal commands generator
+
+`m term`
+
+Generates terminal commands. Works best when `temperature` is set to 0.
+
+Describe what you want to achieve and it will return a corresponding terminal command.
+
+Examples:
+
+```shell
+python neuma.py -m term -i "join all PDFs in this directory ordered by name into presentation.pdf"
+pdfunite $(ls -1v *.pdf) presentation.pdf
+```
+
+```shell
+python neuma.py -m term -i "find all files in this directory modified in the last 7 days"
+find . -type f -mtime -7
+```
+
+```shell
+python ../neuma.py -m term -i "resize all jpg images in this folder to 1600x900"
+mogrify -resize 1600x900 *.jpg
+```
+
 ### Personae
 
 Personae are profiles defined by a specific starting prompt and temperature, they are configured in the `personae.toml` file.
