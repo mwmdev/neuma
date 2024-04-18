@@ -55,7 +55,7 @@ from slugify import slugify
 from langchain_openai import ChatOpenAI
 
 # LLM
-from langchain.chains import ConversationalRetrievalChain
+# from langchain.chains import ConversationalRetrievalChain
 from langchain_community.callbacks import get_openai_callback
 
 # Formatting
@@ -950,7 +950,7 @@ class ChatController:
             final_message = self.chat_model.generate_final_message(args.input)
             response = self.chat_model.generate_response(final_message)
             print(response)
-            exit()
+            sys.exit()
 
     # Parse command
     def parse_command(self, command: str) -> None:
@@ -1431,7 +1431,7 @@ class ChatController:
         self.chat_view.display_message("Exiting neuma, goodbye!", "success")
         sleep(1)
         self.chat_view.console.clear()
-        exit()
+        sys.exit()
 
 
 def main():
