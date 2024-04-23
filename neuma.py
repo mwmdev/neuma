@@ -97,11 +97,28 @@ class ChatModel:
 
     def get_config(self) -> dict:
         """Get config from config.toml and API keys from .env"""
-        # Get config
+
+        # Check in the user's home config directory first
         if os.path.isfile(os.path.expanduser("~/.config/neuma/config.toml")):
             config_path = os.path.expanduser("~/.config/neuma/config.toml")
-        else:
+
+        # Check in the current directory
+        elif os.path.isfile(os.path.dirname(os.path.realpath(__file__)) + "/config.toml"):
             config_path = os.path.dirname(os.path.realpath(__file__)) + "/config.toml"
+
+        # Get config file from github
+        else:
+            try:
+                response = requests.get("https://raw.githubusercontent.com/mwmdev/neuma/main/config.toml")
+                os.makedirs(os.path.expanduser("~/.config/neuma/"), exist_ok=True)
+
+                with open(os.path.expanduser("~/.config/neuma/config.toml"), "w") as f:
+                    f.write(response.text)
+                config_path = os.path.expanduser("~/.config/neuma/config.toml")
+
+            except Exception as e:
+                raise ValueError("No config file found : {}".format(e))
+        # Load config
         try:
             with open(config_path, "r") as f:
                 config = toml.load(f)
