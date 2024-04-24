@@ -744,9 +744,9 @@ class ChatModel:
     # Set vector db
     def set_vector_db(self, vector_db: str) -> None:
         self.vector_db = vector_db
-        full_path = os.path.join(
-            self.config["vector_db"]["persist_folder"], self.vector_db
-        )
+        if not os.path.exists(self.config["vector_db"]["persist_folder"]):
+            os.mkdir(self.config["vector_db"]["persist_folder"])
+        full_path = self.config["vector_db"]["persist_folder"] + "/" + vector_db
         if not os.path.exists(full_path):
             os.mkdir(full_path)
 
