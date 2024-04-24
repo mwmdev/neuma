@@ -6,7 +6,6 @@ import shutil  # For IO
 import subprocess  # For IO
 import openai
 from openai import OpenAI  # The good stuff
-# import pyaudio
 import time  # For logging
 from datetime import datetime
 from time import sleep  # Zzz
@@ -19,13 +18,13 @@ import pyperclip  # For copying to clipboard
 import re  # For regex
 import requests  # For accessing the web
 from bs4 import BeautifulSoup  # For parsing HTML
-import readline
+# import readline
 import argparse  # For parsing command line arguments
 
 # Speech recognition
 import threading
 import speech_recognition
-import sounddevice
+# import sounddevice
 
 # Document loaders
 from langchain_community.document_loaders import DirectoryLoader
@@ -42,20 +41,14 @@ from langchain_openai.embeddings import OpenAIEmbeddings
 # Vector stores
 from langchain.vectorstores.chroma import Chroma
 
-# Memory
-from langchain.memory import ConversationBufferMemory
-
 # Image
 from PIL import Image
 from slugify import slugify
-# import unicode
 
 # Chat models
-# from langchain.chat_models import ChatOpenAI
 from langchain_openai import ChatOpenAI
 
 # LLM
-# from langchain.chains import ConversationalRetrievalChain
 from langchain_community.callbacks import get_openai_callback
 
 # Formatting
