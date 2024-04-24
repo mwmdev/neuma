@@ -21,9 +21,10 @@ from bs4 import BeautifulSoup  # For parsing HTML
 # import readline
 import argparse  # For parsing command line arguments
 
-# Speech recognition
+# Audio
 import threading
 import speech_recognition
+import pyaudio
 # import sounddevice
 
 # Document loaders
