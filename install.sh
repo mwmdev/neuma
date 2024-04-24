@@ -1,14 +1,16 @@
 #!/bin/bash
 
 # check that pip, virtualenv and git are installed
-if ! [ -x "$(command -v virtualenv)" ]; then
-  echo 'Error: virtualenv is not installed. Install virtualenv and try again.' >&2
-  exit 1
-fi
 if ! [ -x "$(command -v pip)" ]; then
   echo 'Error: pip is not installed. Install pip and try again.' >&2
   exit 1
 fi
+
+if ! [ -x "$(command -v virtualenv)" ]; then
+  echo 'Error: virtualenv is not installed. Install virtualenv and try again.' >&2
+  exit 1
+fi
+
 if ! [ -x "$(command -v git)" ]; then
   echo 'Error: git is not installed. Install git and try again.' >&2
   exit 1
