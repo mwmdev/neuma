@@ -31,6 +31,7 @@
   - [Other commands](#other-commands)
   - [Command line arguments](#command-line-arguments)
   - [Color theme](#color-theme)
+- [Troubleshooting](#troubleshooting)
 - [What's in a name?](#whats-in-a-name)
 
 ## Features
@@ -628,6 +629,15 @@ error = "#fb4934"   # red
 prompt = "#928374"  # grey
 answer = "#83a598"  # blue
 ```
+
+## Troubleshooting
+
+If you get a `ImportError: GLIBCXX_3.4.30 not found` error during install, run the following command:
+
+```shell
+conda install -c conda-forge gcc=12.1.0
+``` 
+
 
 ## What's in a name?
 
