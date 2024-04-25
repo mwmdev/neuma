@@ -7,6 +7,7 @@
 ## Table of contents
 - [Features](#features)
 - [Installation](#installation)
+  - [Dependencies](#dependencies)
   - [One line install script](#one-line-install-script)
   - [Manual install](#manual-install)
   - [Alias shortcut](#alias-shortcut)
@@ -45,7 +46,7 @@
 
 Those instructions are for Linux, they may vary for other systems.
 
-## Dependencies
+### Dependencies
 
 Make sure the following packages are installed on your system: 
 
