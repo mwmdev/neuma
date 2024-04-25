@@ -49,9 +49,9 @@ Those instructions are for Linux, they may vary for other systems.
 
 ### Dependencies
 
-Make sure the following packages are installed on your system: 
+Make sure a recent version of the following packages are installed on your system: 
 
-`git python3 python3-pip python3-virtualenv portaudio19-dev`
+`git python python-pip python-virtualenv portaudio19-dev`
 
 ### One line install script
 
