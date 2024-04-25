@@ -45,6 +45,12 @@
 
 Those instructions are for Linux, they may vary for other systems.
 
+## Dependencies
+
+Make sure the following packages are installed on your system: 
+
+`git python3 python3-pip python3-virtualenv portaudio19-dev`
+
 ### One line install script
 
 You can launch the install script with the following command:
@@ -52,7 +58,7 @@ You can launch the install script with the following command:
 ```shell
 bash <(wget -qO- https://raw.githubusercontent.com/mwmdev/neuma/main/install.sh)
 ```
-During the installation process you will be prompted for your  [ChatGPT API key](https://platform.openai.com/account/api-keys).
+During the installation process you will be prompted for a  [ChatGPT API key](https://platform.openai.com/account/api-keys).
 
 ### Manual install
 
