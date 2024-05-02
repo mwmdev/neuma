@@ -746,7 +746,6 @@ class ChatModel:
             OpenAIEmbeddings(),
             persist_directory=full_path,
         )
-        db.persist()
 
     # Embed
     def embed_doc(self, documents: list) -> OpenAIEmbeddings | None | Exception:
