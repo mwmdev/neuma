@@ -22,41 +22,41 @@ echo "Starting neuma installation script"
 # Clone the repository
 echo "- Cloning repository into ./neuma/"
 git clone -q https://github.com/mwmdev/neuma.git
-sleep 8
+sleep 10
 
 # Navigate to the directory
-cd ./neuma
+#cd ./neuma
 
 # Create a python virtual environment
 echo "- Creating virtual environment"
-virtualenv -q -p python3 env
+virtualenv -q -p python3 ./neuma/env
 sleep 5
 
 # Activate the virtual environment
 echo "- Activating virtual environment"
-source ./env/bin/activate
+source ./neuma/env/bin/activate
 
 # Install required dependencies
 echo "- Installing required dependencies"
-pip install -q -r requirements.txt
+pip install -q -r requirements.txt ./neuma
 
 # Rename .env_example to .env
-mv .env_example .env
+mv ./neuma/.env_example ./neuma/.env
 
 # Prompt for OpenAI API Key
 read -p "- Enter your OpenAI API Key (Press Enter to skip): " openai_api_key
 if [ -z "$openai_api_key" ]; then
   echo "- Skipping OpenAI API Key, you can enter it later in ~/.config/neuma/.env"
-  echo "OPENAI_API_KEY=\"\"" > .env
+  echo "OPENAI_API_KEY=\"\"" > ./neuma/.env
 else
-  echo "OPENAI_API_KEY=\"$openai_api_key\"" > .env
+  echo "OPENAI_API_KEY=\"$openai_api_key\"" > ./neuma/.env
 fi
 
 # Move config files to the ~/.config/neuma/ folder
 echo "- Moving default config files to ~/.config/neuma/"
 mkdir -p ~/.config/neuma
-mv .env config.toml personae.toml ~/.config/neuma/
+mv ./neuma/.env ./neuma/config.toml ./neuma/personae.toml ~/.config/neuma/
 
 # Print message
 echo "- Installation complete."
-echo "You can now Run 'python ./neuma/neuma.py' to start the program."
+echo "You can now Run 'source ./neuma/env/bin/activate && python3 ./neuma/neuma.py' to start the program."
