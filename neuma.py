@@ -599,7 +599,7 @@ class ChatModel:
     # Audio
 
     # Voice input
-    def listen(self) -> str:
+    def listen(self) -> str | Exception:
         self.config = self.get_config()
         self.input_device = self.config["audio"]["input_device"]
         self.input_timeout = self.config["audio"]["input_timeout"]
@@ -633,8 +633,7 @@ class ChatModel:
                 return transcription
 
             except speech_recognition.WaitTimeoutError as e:
-                self.logger.exception(e)
-                self.console.print("Timeout error")
+                return e
 
     # Transcribe
     def transcribe(self, audio_file: str) -> str:
@@ -1214,7 +1213,8 @@ class ChatController:
             # Toggle input mode
             if self.input_mode == "text":
                 self.input_mode = "voice"
-                self.chat_view.display_message("Voice input mode enabled.", "success")
+                self.chat_view.display_message("Voice input mode enabled. ", "success")
+                self.chat_view.display_message("(Say [bold]Disable voice input[/bold] to disable.)", "info")
                 self.logger.info("Voice input mode enabled. Disable by saying 'Disable voice input'.")
 
                 # while in voice input mode
