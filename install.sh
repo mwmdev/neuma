@@ -24,9 +24,6 @@ echo "- Cloning repository into ./neuma/"
 git clone -q https://github.com/mwmdev/neuma.git
 sleep 10
 
-# Navigate to the directory
-#cd ./neuma
-
 # Create a python virtual environment
 echo "- Creating virtual environment"
 virtualenv -q -p python3 ./neuma/env
