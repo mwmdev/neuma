@@ -11,3 +11,10 @@ content = "What is the capital of Mexico?"
 role = "assistant"
 content = "The capital of Mexico is Mexico City"
 
+[[persona]]
+name = "docs"
+temp = 0.2
+[[persona.messages]]
+role = "system"
+content = "Answer the question based only on the following context: \n\n {context} \n\n---\n\n Answer the question based on the above context: "
+
