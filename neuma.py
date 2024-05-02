@@ -1279,14 +1279,22 @@ class ChatController:
 
         # List microphones
         elif command.startswith("lm"):
-            for index, name in enumerate(
-                    speech_recognition.Microphone.list_microphone_names()
-            ):
-                print(
-                    'Microphone with name "{1}" found for `Microphone(device_index={0})`'.format(
-                        index, name
-                    )
-                )
+            self.chat_view.display_message("Available input devices", "section")
+            if len(speech_recognition.Microphone.list_microphone_names()) == 0:
+                self.chat_view.display_message("No input devices found.", "info")
+            else:
+                current_microphone = self.chat_model.config["audio"]["input_device"]
+                for index, name in enumerate(
+                        speech_recognition.Microphone.list_microphone_names()
+                ):
+                    if index == current_microphone:
+                        self.chat_view.display_message(
+                            '{0} : {1} <'.format(index, name), "info"
+                        )
+                    else:
+                        self.chat_view.display_message(
+                            '{0} : {1}'.format(index, name), "info"
+                        )
 
         # Documents
 
