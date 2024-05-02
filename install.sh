@@ -38,7 +38,7 @@ source ./neuma/env/bin/activate
 
 # Install required dependencies
 echo "- Installing required dependencies"
-pip install -q -r requirements.txt ./neuma
+pip install -q -r ./neuma/requirements.txt
 
 # Rename .env_example to .env
 mv ./neuma/.env_example ./neuma/.env
