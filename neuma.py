@@ -1,12 +1,13 @@
-import os  # For IO
+import os # For IO
 from io import BytesIO
 import base64
 import sys  # For IO
 import shutil  # For IO
 import subprocess  # For IO
-import openai
+# import openai
 from openai import OpenAI  # The good stuff
-import time  # For logging
+from openai import audio as openai_audio  # For audio
+# import time  # For logging
 from datetime import datetime
 from time import sleep  # Zzz
 import toml  # For parsing settings
@@ -25,10 +26,11 @@ import argparse  # For parsing command line arguments
 import threading
 import speech_recognition
 import pyaudio
-# import sounddevice
+import sounddevice
 
 # Document loaders
 from langchain_community.document_loaders import DirectoryLoader
+# from langchain.document_loaders import DirectoryLoader
 
 # Text splitter
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -658,7 +660,7 @@ class ChatModel:
     def speak(self, response: str) -> None:
         if self.voice_output == True:
             audio_file = "./tmp.wav"
-            with openai.audio.speech.with_streaming_response.create(
+            with openai_audio.speech.with_streaming_response.create(
                     model=self.config["audio"]["model"],
                     voice=self.config["audio"]["voice"],
                     input=response,
@@ -976,7 +978,7 @@ class ChatController:
         # Restart
         elif command == "r":
             self.chat_view.display_message("Restarting...", "success")
-            time.sleep(1)
+            sleep(1)
             python = sys.executable
             os.execl(python, python, *sys.argv)
 
@@ -1100,7 +1102,7 @@ class ChatController:
             self.chat_model.new_conversation()
             self.chat_view.mode = "normal"
             self.chat_view.display_message("New conversation.", "success")
-            time.sleep(1)
+            sleep(1)
             self.chat_view.clear_screen()
 
         # Save conversation
