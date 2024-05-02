@@ -126,16 +126,28 @@ class ChatModel:
             env_path = os.path.expanduser("~/.config/neuma/.env")
         else:
             env_path = os.path.dirname(os.path.realpath(__file__)) + "/.env"
+
+        # check if env_path exists
+        if not os.path.exists(env_path):
+            print(f"Error: {env_path} not found.")
+            print("Make sure the file exists and OPENAI_API_KEY is set in the file.")
+            exit(1)
+
         try:
             with open(env_path, "r") as f:
                 env = toml.load(f)
                 # OpenAI
                 openai_api_key = env["OPENAI_API_KEY"]
-                if openai_api_key:
+                if openai_api_key != "":
                     config["openai"]["api_key"] = openai_api_key
+                else:
+                    print(f"Error: OPENAI_API_KEY not set in {env_path}")
+                    exit(1)
+
 
         except Exception as e:
-            raise ValueError("Error loading API key.")
+            print("Error: {}".format(e))
+            exit(1)
 
         return config
 
