@@ -11,7 +11,7 @@ model = "tts-1-hd" # See https://platform.openai.com/docs/models/tts for availab
 voice = "onyx" # See https://platform.openai.com/docs/guides/text-to-speech/voice-options for available voices
 
 [conversations]
-data_folder = "./data/"
+data_folder = "~/.config/neuma/data/"
 
 [modes]
 normal = ""
@@ -28,14 +28,14 @@ term = "You are in the terminal, output a command line command that does the fol
 model = "text-embedding-ada-002"
 
 [vector_db]
-persist_folder = "./db"
+persist_folder = "~/.config/neuma/db"
 default = "docs"
 
 [images]
 model = "dall-e-3"
 size = "1024x1024"
 quality = "hd"
-path = "./img/"
+path = "~/.config/neuma/img"
 open = true
 open_command = "feh"
 
