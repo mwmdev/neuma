@@ -1008,8 +1008,11 @@ class ChatController:
         elif command == "r":
             self.chat_view.display_message("Restarting...", "success")
             sleep(1)
-            python = sys.executable
-            os.execl(python, python, *sys.argv)
+            try:
+                os.execl(sys.executable, [sys.executable] )
+            except Exception as e:
+                self.chat_view.display_message("Error: {}".format(e), "error")
+                sys.exit()
 
         # Help
         elif command == "h":
