@@ -4,7 +4,7 @@ import base64
 import sys  # For IO
 import shutil  # For IO
 import subprocess  # For IO
-# import openai
+import openai
 from openai import OpenAI  # The good stuff
 from openai import audio as openai_audio  # For audio
 # import time  # For logging
