@@ -426,7 +426,6 @@ content = "Teach me how # works by asking questions about my level of understand
 [[persona]]
 name = "handyman"
 temp = 0.65
-voice_name = "en-GB-Neural2-B"
 [[persona.messages]]
 role = "system"
 content = "You are a helpful handyman and a DIY expert. You will teach me to complete simple home improvementand maintenance projects using lists of necessary tools and simple step by step instructions."
