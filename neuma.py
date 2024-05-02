@@ -102,14 +102,17 @@ class ChatModel:
         elif os.path.isfile(os.path.dirname(os.path.realpath(__file__)) + "/config.toml"):
             config_path = os.path.dirname(os.path.realpath(__file__)) + "/config.toml"
 
-        # Get config file from github
+        # Get config file from GitHub
         else:
             try:
                 response = requests.get("https://raw.githubusercontent.com/mwmdev/neuma/main/config.toml")
+                expanded_user_home = os.path.expanduser("~")
+                user_config = response.text.replace("~", expanded_user_home)
                 os.makedirs(os.path.expanduser("~/.config/neuma/"), exist_ok=True)
 
                 with open(os.path.expanduser("~/.config/neuma/config.toml"), "w") as f:
-                    f.write(response.text)
+                    f.write(user_config)
+
                 config_path = os.path.expanduser("~/.config/neuma/config.toml")
 
             except Exception as e:
@@ -149,6 +152,21 @@ class ChatModel:
         except Exception as e:
             print("Error: {}".format(e))
             exit(1)
+
+        # Create data folder if it doesn't exist
+        data_folder = config["conversations"]["data_folder"]
+        if not os.path.exists(data_folder):
+            os.makedirs(data_folder)
+
+        # Create persist folder if it doesn't exist
+        persist_folder = config["vector_db"]["persist_folder"]
+        if not os.path.exists(persist_folder):
+            os.makedirs(persist_folder)
+
+        # Create images folder if it doesn't exist
+        image_path = config["images"]["path"]
+        if not os.path.exists(image_path):
+            os.makedirs(image_path)
 
         return config
 
@@ -1398,7 +1416,6 @@ class ChatController:
 
                 # Load document
                 try:
-                    # document = self.chat_model.load_document(path)
                     documents = self.chat_model.load_documents(path)
                     num_docs = len(documents)
 
