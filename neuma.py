@@ -114,6 +114,7 @@ class ChatModel:
 
             except Exception as e:
                 raise ValueError("No config file found : {}".format(e))
+
         # Load config
         try:
             with open(config_path, "r") as f:
@@ -454,21 +455,38 @@ class ChatModel:
         """List the available personae from the personae file"""
 
         personae = {}
+
+        # Check in the user's home config directory first
         if os.path.isfile(os.path.expanduser("~/.config/neuma/personae.toml")):
             personae_path = os.path.expanduser("~/.config/neuma/personae.toml")
-            self.logger.info("Personae path : {}".format(personae_path))
-        else:
+
+        # Check in the current directory
+        elif os.path.isfile(os.path.dirname(os.path.realpath(__file__)) + "/personae.toml"):
             personae_path = (
                     os.path.dirname(os.path.realpath(__file__)) + "/personae.toml"
             )
-            self.logger.info("Personae path : {}".format(personae_path))
+
+        # Get personae file from github
+        else:
+            try:
+                response = requests.get("https://raw.githubusercontent.com/mwmdev/neuma/main/personae.toml")
+                os.makedirs(os.path.expanduser("~/.config/neuma/"), exist_ok=True)
+
+                with open(os.path.expanduser("~/.config/neuma/personae.toml"), "w") as f:
+                    f.write(response.text)
+                personae_path = os.path.expanduser("~/.config/neuma/personae.toml")
+
+            except Exception as e:
+                raise ValueError("No personae file found : {}".format(e))
+
+        # Load personae
         try:
             with open(personae_path, "r") as f:
                 personae = toml.load(f)
                 self.logger.info("Personae available : {}".format(len(personae["persona"])))
-
         except Exception as e:
-            self.logger.exception(e)
+            raise ValueError("No personae file found : {}".format(e))
+
         return personae
 
     # Set persona
