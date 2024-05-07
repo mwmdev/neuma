@@ -287,9 +287,6 @@ class ChatModel:
             temperature = self.get_persona_temperature(self.persona)
             self.logger.info("temperature: {}".format(temperature))
 
-            top_p = self.config["openai"]["top_p"]
-            self.logger.info("top_p: {}".format(top_p))
-
             max_tokens = self.config["openai"]["max_tokens"]
             self.logger.info("max_tokens: {}".format(max_tokens))
 
@@ -371,7 +368,6 @@ class ChatModel:
                     model_name=model,
                     temperature=temperature,
                     max_tokens=max_tokens,
-                    # top_p=top_p,
                 )
                 try:
                     with get_openai_callback() as callback:
@@ -379,7 +375,6 @@ class ChatModel:
                             model=model,
                             messages=messages,
                             temperature=temperature,
-                            # top_p=top_p
                         )
                         response = chat_completions.choices[0].message.content
                         response_data = {
@@ -846,11 +841,6 @@ class ChatModel:
             self.config["openai"]["temperature"] = float(temperature)
             return True
 
-    # Set top_p
-    def set_top(self, top: float) -> bool:
-        self.config["openai"]["top_p"] = float(top)
-        return True
-
     # Set max_tokens
     def set_max_tokens(self, max_tokens: int) -> bool:
         self.config["openai"]["max_tokens"] = int(max_tokens)
@@ -904,7 +894,6 @@ class ChatView:
         help_table.add_row("y", "Copy last answer to clipboard")
         help_table.add_row("t", "Get the current temperature value")
         help_table.add_row("t \\[temp]", "Set the temperature to \\[temp]")
-        help_table.add_row("tp", "Get the current top_p value")
         help_table.add_row("mt", "Get the current max_tokens value")
         help_table.add_row("mt \\[max_tokens]", "Set the max_tokens to \\[max_tokens]")
         help_table.add_row("g", "List available GPT models")
@@ -1071,25 +1060,6 @@ class ChatController:
             else:
                 self.chat_view.display_message(
                     "temperature set to {}.".format(temp), "success"
-                )
-
-        # Get top_p
-        elif command == "tp":
-            self.chat_view.display_message(
-                "top_p: {}".format(self.chat_model.config["openai"]["top_p"]), "info"
-            )
-
-        # Set top_p
-        elif command.startswith("tp "):
-            top = command[2:]
-            set_top = self.chat_model.set_top(top)
-            if isinstance(set_top, Exception):
-                self.chat_view.display_message(
-                    "Error setting top_p: {}".format(set_top), "error"
-                )
-            else:
-                self.chat_view.display_message(
-                    "top_p set to {}.".format(top), "success"
                 )
 
         # Get max tokens
