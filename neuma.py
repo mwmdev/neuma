@@ -1026,7 +1026,7 @@ class ChatController:
             self.chat_view.display_message("Restarting...", "success")
             sleep(1)
             try:
-                os.execl(sys.executable, [sys.executable] )
+                os.execl(sys.executable, sys.executable, __file__ )
             except Exception as e:
                 self.chat_view.display_message("Error: {}".format(e), "error")
                 sys.exit()
