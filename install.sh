@@ -43,16 +43,17 @@ mv ./neuma/.env_example ./neuma/.env
 # Prompt for OpenAI API Key
 read -p "- Enter your OpenAI API Key (Press Enter to skip): " openai_api_key
 if [ -z "$openai_api_key" ]; then
-  echo "- Skipping OpenAI API Key, you can enter it later in ~/.config/neuma/.env"
+  echo "- Skipping OpenAI API Key, you can enter it later in $HOME/.config/neuma/.env"
   echo "OPENAI_API_KEY=\"\"" > ./neuma/.env
 else
   echo "OPENAI_API_KEY=\"$openai_api_key\"" > ./neuma/.env
 fi
 
-# Move config files to the ~/.config/neuma/ folder
-echo "- Moving default config files to ~/.config/neuma/"
-mkdir -p ~/.config/neuma
-mv ./neuma/.env ./neuma/config.toml ./neuma/personae.toml ~/.config/neuma/
+# Move config files to the $HOME/.config/neuma/ folder
+echo "- Moving default config files to $HOME/.config/neuma/"
+
+mkdir -p $HOME/.config/neuma
+mv ./neuma/.env ./neuma/config.toml ./neuma/personae.toml $HOME/.config/neuma/
 
 # Print message
 echo "- Installation complete."
