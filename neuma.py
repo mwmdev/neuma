@@ -71,7 +71,9 @@ class ChatModel:
         self.config = self.get_config()
         self.logging = self.config["debug"]["logging"]
         self.logger = self.set_logger(self.logging)
-        self.client = OpenAI()
+        self.client = OpenAI(
+            api_key= self.config["openai"]["api_key"]
+        )
         self.mode = self.set_mode("normal")  # Default mode
         self.persona = self.set_persona("default")
         self.voice_output = False  # Default voice output
