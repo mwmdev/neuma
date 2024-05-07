@@ -1,4 +1,4 @@
-import os # For IO
+import os  # For IO
 from io import BytesIO
 import base64
 import sys  # For IO
@@ -77,7 +77,7 @@ class ChatModel:
         self.voice_output = False  # Default voice output
         self.vector_db = ""  # Default
 
-    def set_logger(self, logging_status: bool ) -> logging.Logger | None:
+    def set_logger(self, logging_status: bool) -> logging.Logger | None:
         """Set up logging"""
 
         logging.basicConfig(
@@ -399,7 +399,6 @@ class ChatModel:
                         response_message = {"role": "assistant", "content": response_data["message"]}
                         self.conversation.append(response_message)
 
-
                 except Exception as e:
                     self.logger.exception(e)
 
@@ -688,8 +687,8 @@ class ChatModel:
 
         try:
             transcript = self.client.audio.transcriptions.create(
-                model = "whisper-1",
-                file = audio_file,
+                model="whisper-1",
+                file=audio_file,
             )
             transcript = transcript.text
             return transcript
@@ -705,7 +704,7 @@ class ChatModel:
         self.voice_output = voice_output
 
     def speak(self, response: str) -> None:
-        if self.voice_output == True:
+        if self.voice_output:
             audio_file = "./tmp.wav"
             with openai_audio.speech.with_streaming_response.create(
                     model=self.config["audio"]["model"],
@@ -1026,7 +1025,7 @@ class ChatController:
             self.chat_view.display_message("Restarting...", "success")
             sleep(1)
             try:
-                os.execl(sys.executable, sys.executable, __file__ )
+                os.execl(sys.executable, sys.executable, __file__)
             except Exception as e:
                 self.chat_view.display_message("Error: {}".format(e), "error")
                 sys.exit()
@@ -1375,7 +1374,6 @@ class ChatController:
             vector_db_info = self.chat_model.get_vector_db_info()
             self.chat_view.display_message("Vector db info: {}".format(vector_db_info), "success")
 
-
         # Trash vector db
         elif command.startswith("dt "):
             vector_db = command.split(" ")[1]
@@ -1519,3 +1517,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
