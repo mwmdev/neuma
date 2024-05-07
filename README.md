@@ -126,7 +126,7 @@ alias n='source /path/to/neuma/env/bin/activate && python /path/to/neuma.py'
 
 ## Usage
 
-Use `neuma` as an interactive chat, write your prompt and press enter. Wait for the answer, then continue the discussion.
+Use `neuma` as an interactive chat, write your prompt and press `Enter`. Wait for the answer, then continue the discussion.
 
 Press `h` followed by `Enter` to list all the commands.
 
@@ -152,12 +152,10 @@ Press `h` followed by `Enter` to list all the commands.
 │ d                 │ List available vector dbs                       │
 │ d [db]            │ Create or switch to vector db [db]              │
 │ dt [db]           │ Trash vector db [db]                            │
-│ e [/path/to/file] │ Embed [/path/to/file] document into current db  │
+│ e [/path/to/folder] │ Embed all files in [/path/to/folder] into current db  │
 │ y                 │ Copy last answer to clipboard                   │
 │ t                 │ Get the current temperature                     │
 │ t [temp]          │ Set the temperature to [temp]                   │
-│ tp                │ Get the current top_p value                     │
-│ tp [top_p]        │ Set the top_p to [top_p]                        │
 │ mt                │ Get the current max_tokens value                │
 │ mt [max_tokens]   │ Set the max_tokens to [max_tokens]              │
 │ g                 │ List available GPT models                       │
@@ -228,7 +226,7 @@ Output:
 
 `m code`
 
-Displays only syntax highlighted code. Works best when `temperature` is set to 0.
+Displays syntax highlighted code. Works best when `temperature` is set to 0.
 
 Start with `#` followed by the name of the language and the prompt.
 
@@ -327,7 +325,7 @@ Output:
 
 `m img`
 
-Generate images with `dall-e`
+Generate images with `dall-e`.
 
 Example:
 
@@ -347,7 +345,7 @@ Image settings are available in the `config.toml` file :
 
 ```toml
 [images]
-model = "dall-e-3" # either "dall-e-2" or "dall-e-3"
+model = "dall-e-2" # either "dall-e-2" or "dall-e-3"
 size = "1024x1024" # for available sizes see https://platform.openai.com/docs/api-reference/images/create 
 quality = "standard" # either "standard" or "hd" (only for "dall-e-3")
 path = "./img/" # path to save the generated images
@@ -363,23 +361,15 @@ Generates terminal commands. Works best when `temperature` is set to 0.
 
 Describe what you want to achieve and it will return a corresponding terminal command.
 
-Examples:
-
-```shell
-python neuma.py -m term -i "join all PDFs in this directory ordered by name into presentation.pdf"
-pdfunite $(ls -1v *.pdf) presentation.pdf
+Example:
 ```
+> find all files in this directory modified in the last 7 days
+```
+Output:
 
-```shell
-python neuma.py -m term -i "find all files in this directory modified in the last 7 days"
+```
 find . -type f -mtime -7
 ```
-
-```shell
-python ../neuma.py -m term -i "resize all jpg images in this folder to 1600x900"
-mogrify -resize 1600x900 *.jpg
-```
-
 You can then copy-paste the command into your terminal and run it (use with caution!).
 
 ### Personae
@@ -613,6 +603,11 @@ Examples :
 ```shell
 > python neuma.py -m img -i "Escher's lost masterpiece"
 Image generated and saved to : ./img/escher-s-lost-masterpiece-20240411203242.png
+```
+
+```shell
+python neuma.py -m term -i "join all PDFs in this directory ordered by name into presentation.pdf"
+pdfunite $(ls -1v *.pdf) presentation.pdf
 ```
 
 ## Color theme
