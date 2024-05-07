@@ -4,7 +4,7 @@ import base64
 import sys  # For IO
 import shutil  # For IO
 import subprocess  # For IO
-import openai
+# import openai
 from openai import OpenAI  # The good stuff
 from openai import audio as openai_audio  # For audio
 # import time  # For logging
@@ -1002,6 +1002,10 @@ class ChatController:
     # Parse command
     def parse_command(self, command: str) -> None:
         """Parse the user input and execute the command"""
+
+        # if no command is given, don't do anything
+        if command == "":
+            return
 
         # System
 
