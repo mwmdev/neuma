@@ -579,6 +579,7 @@ options:
   -p PERSONA, --persona PERSONA       Set persona
   -m MODE, --mode MODE                Set mode
   -t TEMP, --temp TEMP                Set temperature
+  -vo, --voice-output                 Enable voice output
 ```
 
 Examples :
