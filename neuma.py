@@ -100,12 +100,10 @@ class ChatModel:
 
         # Check in the current directory
         elif os.path.isfile(os.path.dirname(os.path.realpath(__file__)) + "/config.toml"):
-            self.logger.info("Config file found in current directory")
             config_path = os.path.dirname(os.path.realpath(__file__)) + "/config.toml"
 
         # Get config file from GitHub
         else:
-            self.logger.info("No config file found. Getting one from GitHub.")
             try:
                 response = requests.get("https://raw.githubusercontent.com/mwmdev/neuma/main/config.toml")
                 expanded_user_home = os.path.expanduser("~")
@@ -116,7 +114,6 @@ class ChatModel:
                     f.write(user_config)
 
                 config_path = os.path.expanduser("~/.config/neuma/config.toml")
-                self.logger.info("Config saved in {}".format(config_path))
 
             except Exception as e:
                 raise ValueError("No config file found : {}".format(e))
@@ -124,22 +121,18 @@ class ChatModel:
         # Load config
         try:
             with open(config_path, "r") as f:
-                self.logger.info("Loading config from {}".format(config_path))
                 config = toml.load(f)
         except Exception as e:
             raise ValueError("No config file found.")
 
         # Get API keys
         if os.path.isfile(os.path.expanduser("~/.config/neuma/.env")):
-            self.logger.info("API keys found in user's home directory")
             env_path = os.path.expanduser("~/.config/neuma/.env")
         else:
-            self.logger.info("API keys found in current directory")
             env_path = os.path.dirname(os.path.realpath(__file__)) + "/.env"
 
         # check if env_path exists
         if not os.path.exists(env_path):
-            self.logger.error(f"Error: {env_path} not found.")
             print(f"Error: {env_path} not found.")
             print("Make sure the file exists and OPENAI_API_KEY is set in the file.")
             exit(1)
@@ -150,11 +143,9 @@ class ChatModel:
                 # OpenAI
                 openai_api_key = env["OPENAI_API_KEY"]
                 if openai_api_key != "":
-                    self.logger.info("OPENAI_API_KEY found in .env")
                     config["openai"]["api_key"] = openai_api_key
                     os.environ["OPENAI_API_KEY"] = openai_api_key
                 else:
-                    self.logger.error(f"Error: OPENAI_API_KEY not set in {env_path}")
                     print(f"Error: OPENAI_API_KEY not set in {env_path}")
                     exit(1)
 
