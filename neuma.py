@@ -754,6 +754,7 @@ class ChatModel:
             self.logger.exception(e)
 
     # Get vector dbs
+    # TODO: Add a "none" choice
     def get_vector_dbs(self) -> list:
         persist_folder = self.config["vector_db"]["persist_folder"]
         if not os.path.exists(persist_folder):
@@ -764,9 +765,8 @@ class ChatModel:
     def get_vector_db(self) -> str:
         return self.vector_db
 
-    # Get information about the vector db (NEW)
+    # Get information about the vector db
     def get_vector_db_info(self) -> dict:
-        # get the folder size in KiB
         persist_folder = self.config["vector_db"]["persist_folder"]
         full_path = os.path.join(persist_folder, self.vector_db)
         total_size = 0
@@ -775,13 +775,8 @@ class ChatModel:
                 fp = os.path.join(dirpath, f)
                 total_size += os.path.getsize(fp)
         total_size = total_size / 1024
-
-        # get metadata
-        # vector_db = Chroma(
-        #     persist_directory=full_path,
-        # )
-        # vector_db_details = vector_db._collection.metadata()
-
+        total_size = int(total_size)
+        total_size = str(total_size) + "K"
         return {"name": self.vector_db, "size": total_size}
 
     # Set vector db
@@ -1353,11 +1348,17 @@ class ChatController:
         # Get info about vector db
         elif command == "di":
             vector_db_info = self.chat_model.get_vector_db_info()
-            self.chat_view.display_message("Vector db info: {}".format(vector_db_info), "success")
+            self.chat_view.display_message("Vector db info: {}".format(vector_db_info), "info")
 
         # Trash vector db
         elif command.startswith("dt "):
             vector_db = command.split(" ")[1]
+            self.chat_view.display_message(
+                "Trash vector db: {}? (y/n)".format(vector_db), "warning"
+            )
+            confirm = input("  ")
+            if confirm.lower() != "y":
+                return
             trash_vector_db = self.chat_model.trash_vector_db(vector_db)
             if isinstance(trash_vector_db, Exception):
                 self.chat_view.display_message(
@@ -1365,7 +1366,7 @@ class ChatController:
                     "error",
                 )
             else:
-                self.chat_view.display_message("Vector db trashed.", "success")
+                self.chat_view.display_message("Vector db {} trashed.".format(vector_db), "success")
 
         # Embed document
         elif command.startswith("e "):
