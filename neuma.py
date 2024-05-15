@@ -966,7 +966,7 @@ class ChatController:
         parser.add_argument("-m", "--mode", help="Set mode")
         parser.add_argument("-d", "--db", help="Set vector db")
         parser.add_argument("-t", "--temp", help="Set temperature")
-        parser.add_argument("-vo", "--voice-output", help="Enable voice output")
+        parser.add_argument("-vo", "--voiceout", help="Enable voice output")
 
         # Parse the command line arguments
         args = parser.parse_args()
@@ -988,7 +988,7 @@ class ChatController:
             self.chat_model.set_temperature(args.temp)
 
         # Set voice output
-        if args.voice_out:
+        if args.voiceout:
             self.chat_model.set_voice_output(args.voice_out)
 
         # Prompt input
@@ -997,7 +997,7 @@ class ChatController:
             final_message = self.chat_model.generate_final_message(args.input)
             response = self.chat_model.generate_response(final_message)
             print(response)
-            if args.voice_out:
+            if args.voiceout:
                 self.chat_model.speak(response)
             sys.exit()
 
