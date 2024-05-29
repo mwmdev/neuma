@@ -989,7 +989,7 @@ class ChatController:
 
         # Set voice output
         if args.voiceout:
-            self.chat_model.set_voice_output(args.voice_out)
+            self.chat_model.set_voice_output(args.voiceout)
 
         # Prompt input
         if args.input:
