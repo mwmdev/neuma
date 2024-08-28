@@ -4,10 +4,10 @@ langsmith==0.1.52
 langchain_community==0.0.36
 langchain_openai==0.1.1
 openai==1.14.3
-protobuf==5.26.1
+protobuf==3.20
 PyAudio==0.2.14
 pyperclip==1.8.2
-Requests==2.31.0
+Requests==2.32.0
 rich==13.7.1
 sounddevice==0.4.6
 SpeechRecognition==3.10.0
@@ -15,5 +15,5 @@ toml==0.10.2
 python-slugify==8.0.4
 Pillow==10.3.0
 unicode==2.9
-unstructured==0.11.8
+unstructured==0.13.6
 chromadb==0.5.0
