@@ -4,7 +4,7 @@ langsmith==0.1.52
 langchain_community==0.0.36
 langchain_openai==0.1.1
 openai==1.14.3
-protobuf==3.20
+protobuf==3.20.2
 PyAudio==0.2.14
 pyperclip==1.8.2
 Requests==2.32.0
