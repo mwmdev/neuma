@@ -1,5 +1,5 @@
 beautifulsoup4==4.12.3
-langchain==0.1.17
+langchain==0.2.5
 langsmith==0.1.52
 langchain_community==0.0.36
 langchain_openai==0.1.1
