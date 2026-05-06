@@ -2,7 +2,7 @@ beautifulsoup4==4.12.3
 langchain==0.2.5
 langsmith==0.7.31
 langchain_community==0.3.27
-langchain_openai==0.1.1
+langchain_openai==1.1.14
 openai==1.14.3
 protobuf==5.29.6
 PyAudio==0.2.14
