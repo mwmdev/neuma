@@ -7,7 +7,7 @@ openai==1.14.3
 protobuf==5.29.6
 PyAudio==0.2.14
 pyperclip==1.8.2
-Requests==2.32.4
+Requests==2.33.0
 rich==13.7.1
 sounddevice==0.4.6
 SpeechRecognition==3.10.0
